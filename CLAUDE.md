@@ -56,7 +56,10 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
     `Pipe`-`readabilityHandler`, Autostart via `SMAppService` (macOS 13+),
     Fertig-Mitteilung via `UNUserNotificationCenter`. Migriert beim ersten
     Start alte `source`/`destination`-Keys in ein Standardprofil.
-  - `PfadZeile`: Hilfs-View für Quelle/Ziel-Zeilen mit Ordner-Icon.
+  - `PfadZeile`: Hilfs-View für Quelle/Ziel-Zeilen mit Ordner-Icon. Unterstützt
+    Drag & Drop von Ordnern/Volumes (`.onDrop(of: [.fileURL], ...)`), prüft per
+    `FileManager.fileExists(isDirectory:)`, ob das gedropte Element ein Ordner
+    ist, und zeigt beim Drag-Over eine farbige Umrandung als Feedback.
   - `StatusPunkt`: farbiger Kreis (grün/gelb/rot/grau) für den Backup-Zustand.
   - `ContentView`: das SwiftUI-Hauptfenster (Profil wählen/anlegen/löschen/
     umbenennen, Quelle/Ziel wählen, Testlauf-Toggle, Start/Abbrechen,
@@ -91,8 +94,10 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
   `~/Desktop/RsyncBackup-<Profil>-<Zeitstempel>.txt` gespeichert (ein Lauf =
   eine Datei, auch bei Testläufen).
 - **Normales Fenster mit Dock-Icon**: kein Menüleisten-Icon, keine
-  MenuBarExtra-Einschränkungen (z. B. funktioniert Drag & Drop hier
-  potenziell besser, bislang aber nicht implementiert).
+  MenuBarExtra-Einschränkungen.
+- **Drag & Drop für Quelle/Ziel**: Ordner oder Volumes (z. B. aus Finder)
+  können direkt in die Pfadfelder gezogen werden; nur Ordner werden
+  akzeptiert, Dateien werden ignoriert.
 - **Mitteilung wenn fertig**: macOS-Notification bei Abschluss/Fehler (opt-in,
   fragt beim Einschalten nach Erlaubnis), zusätzlich Systemsound.
 - **Autostart**: „Beim Login automatisch starten" via `SMAppService`

@@ -103,12 +103,22 @@ Erstcommit (2026-07-09) – Duplikat von RsyncBackup, umgebaut auf Fenster-App
 
 ## Offene Ideen / mögliche nächste Schritte
 
-- Drag & Drop für Quelle/Ziel: in einem normalen Fenster (kein
-  MenuBarExtra-Popover, das sich beim Fokusverlust schließt) könnte das
-  jetzt tatsächlich funktionieren – wurde in der Menüleisten-Variante wegen
-  genau dieser Einschränkung wieder entfernt. Noch nicht implementiert.
 - Funktions-Updates aus `RsyncBackup` bei Bedarf hier nachziehen (kein
   automatischer Sync zwischen den Repos).
+
+### Update 2026-07-09: Drag & Drop für Quelle/Ziel
+
+`PfadZeile` (in `Sources/RsyncBackupApp.swift`) akzeptiert jetzt per
+`.onDrop(of: [.fileURL], isTargeted:)` gedroppte Ordner/Volumes (z. B. aus
+dem Finder) und übernimmt deren Pfad direkt ins Textfeld. Dateien werden
+per `FileManager.fileExists(isDirectory:)`-Prüfung verworfen. Beim
+Drag-Over zeigt das Feld eine farbige Umrandung (`Color.accentColor`) als
+visuelles Feedback. Import `UniformTypeIdentifiers` neu hinzugekommen.
+
+**Wichtig:** Kompiliert wurde dies in einer Linux-Cloud-Sitzung ohne
+`swiftc` — der übliche Compile-Check (`swiftc -parse-as-library …`) konnte
+hier nicht ausgeführt werden. Vor dem produktiven Einsatz auf einem Mac
+gegenprüfen.
 
 ## Bekannte Einschränkungen
 

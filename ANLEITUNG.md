@@ -43,7 +43,9 @@ Das Backup läuft direkt in der App; der Fortschritt wird unten als Statuszeile 
 ## Benutzen
 
 - Die App öffnet sich als normales Fenster (mit Dock-Icon).
-- Wähle **Quelle** und **Ziel** über „Wählen…" oder tippe/füge den Pfad direkt ins Textfeld ein.
+- Wähle **Quelle** und **Ziel** über „Wählen…", tippe/füge den Pfad direkt ins
+  Textfeld ein, oder ziehe einen **Ordner oder ein Volume** (z. B. aus dem
+  Finder oder vom Schreibtisch) direkt in das jeweilige Feld.
 - Klicke **Backup starten**. Während es läuft, kannst du **Pause** drücken
   (hält rsync an, ohne abzubrechen) und mit **Fortsetzen** weitermachen – oder
   jederzeit **Abbrechen**.

@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 import ServiceManagement
 import UserNotifications
+import UniformTypeIdentifiers
 
 // MARK: - Profil
 // Ein Backup-Profil: benanntes Quelle/Ziel-Paar. Mehrere davon werden
@@ -414,6 +415,8 @@ private struct PfadZeile: View {
     @Binding var pfad: String
     let aktion: () -> Void
 
+    @State private var wirdÜbersogen = false
+
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "folder")
@@ -421,7 +424,7 @@ private struct PfadZeile: View {
                 .font(.system(size: 12))
             VStack(alignment: .leading, spacing: 1) {
                 Text(label).font(.caption).foregroundColor(.secondary)
-                TextField("— Pfad eingeben oder einfügen —", text: $pfad)
+                TextField("— Pfad eingeben, einfügen oder Ordner hierher ziehen —", text: $pfad)
                     .font(.system(size: 11))
                     .textFieldStyle(.plain)
                     .lineLimit(1)
@@ -441,6 +444,29 @@ private struct PfadZeile: View {
             }
             Button("Wählen…", action: aktion)
                 .font(.system(size: 11))
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(wirdÜbersogen ? Color.accentColor.opacity(0.15) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(wirdÜbersogen ? Color.accentColor : Color.clear, lineWidth: 1.5)
+        )
+        .animation(.easeInOut(duration: 0.15), value: wirdÜbersogen)
+        .onDrop(of: [.fileURL], isTargeted: $wirdÜbersogen) { providers in
+            guard let provider = providers.first else { return false }
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                guard let url else { return }
+                var isDirectory: ObjCBool = false
+                let existiertUndIstOrdner = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+                guard existiertUndIstOrdner else { return }
+                Task { @MainActor in
+                    pfad = url.path
+                }
+            }
+            return true
         }
     }
 }
