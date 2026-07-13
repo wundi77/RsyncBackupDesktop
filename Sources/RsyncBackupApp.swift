@@ -596,6 +596,13 @@ private struct WindowAccessor: NSViewRepresentable {
             window.isOpaque = false
             window.backgroundColor = NSColor.windowBackgroundColor
                 .withAlphaComponent(ContentView.windowHintergrundDeckkraft)
+            // Verhindert, dass macOS automatisch das erste Textfeld (den
+            // Profilnamen) fokussiert und dort schon den blinkenden Cursor
+            // zeigt, bevor man tatsächlich hineingeklickt hat.
+            window.makeFirstResponder(nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                window.makeFirstResponder(nil)
+            }
         }
         return view
     }
@@ -670,6 +677,13 @@ struct ContentView: View {
         isDarkMode ? Color(white: 0.85) : Color(white: 0.3)
     }
 
+    // Ein mittelgrauer Ton für den Aufklapp-Pfeil der Profilauswahl — bewusst
+    // derselbe Wert in beiden Modi, da Mittelgrau sich sowohl vom dunklen als
+    // auch vom hellen Kartenhintergrund ausreichend abhebt.
+    private var pfeilFarbe: Color {
+        Color(white: 0.5)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
@@ -692,20 +706,30 @@ struct ContentView: View {
             // Profil-Auswahl + Verwaltung
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 6) {
-                    Picker("Profil", selection: Binding(
-                        get: { manager.selectedProfileID },
-                        set: { manager.selectedProfileID = $0; manager.persist() }
-                    )) {
+                    // Statt Picker (dessen native Aufklapp-Pfeile sich farblich
+                    // kaum vom Hintergrund abheben) ein Menu mit selbst
+                    // gezeichnetem, klar sichtbarem Pfeil-Symbol.
+                    Menu {
                         ForEach(manager.profiles) { p in
-                            Text(p.name.isEmpty ? "(ohne Namen)" : p.name)
-                                .foregroundColor(pickerTextFarbe)
-                                .tag(p.id)
+                            Button(p.name.isEmpty ? "(ohne Namen)" : p.name) {
+                                manager.selectedProfileID = p.id
+                                manager.persist()
+                            }
                         }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(manager.name.isEmpty ? "(ohne Namen)" : manager.name)
+                                .foregroundColor(pickerTextFarbe)
+                                .lineLimit(1)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundColor(pfeilFarbe)
+                        }
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 6)
+                        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
                     }
-                    .labelsHidden()
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 4)
-                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
+                    .menuStyle(.borderlessButton)
 
                     Button { manager.addProfile() } label: {
                         Image(systemName: "plus")

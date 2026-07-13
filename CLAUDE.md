@@ -93,11 +93,13 @@ rsync-Flags.)
     ausklappbare Protokoll-/Fehler-Zusammenfassung, Autostart- und
     Mitteilungs-Toggle).
   - `WindowAccessor`: `NSViewRepresentable`, greift auf das `NSWindow` zu und
-    macht nur die Titelleiste transparent/titellos
-    (`titlebarAppearsTransparent`, `titleVisibility = .hidden`) und aktiviert
-    `isMovableByWindowBackground`. Das Fenster bleibt vollständig blickdicht
-    (keine Fenster-Transparenz, kein Custom-Schatten) — der reguläre
-    Fensterhintergrund füllt durchgängig die ganze Fläche.
+    macht die Titelleiste transparent/titellos (`titlebarAppearsTransparent`,
+    `titleVisibility = .hidden`), aktiviert `isMovableByWindowBackground` und
+    setzt die leicht transparente Fensterhintergrundfarbe (siehe UI-Stil).
+    Ruft außerdem zweimal `window.makeFirstResponder(nil)` auf (sofort und
+    nochmal nach 0,05 s), damit macOS nicht automatisch das Profilname-
+    Textfeld fokussiert und dort schon beim Start einen blinkenden Cursor
+    zeigt, bevor man aktiv hineingeklickt hat.
   - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` (ohne Titel-String)
     mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
     `.windowStyle(.hiddenTitleBar)`.
@@ -171,13 +173,16 @@ rsync-Flags.)
   SwiftUI-Hintergrundfarbe (`Color(nsColor: .windowBackgroundColor)`) nutzt
   `.opacity(...)` mit demselben Wert (beide Ebenen müssen die Transparenz
   tragen, sonst verdeckt die eine die andere komplett).
-- Picker-Text (Profilauswahl) über `ContentView.pickerTextFarbe`
-  modusabhängig: Dark Mode `Color(white: 0.85)` (hellgrau), Light Mode
-  `Color(white: 0.3)` (dunkleres Grau, bewusst kein reines Schwarz) — sonst
-  ist die native Anzeige (geschlossener Picker *und* Dropdown-Menü) im
-  jeweils anderen Modus kaum lesbar. Der Picker selbst hat außerdem einen
-  eigenen Hintergrund (`Color(nsColor: .controlBackgroundColor)`), damit er
-  sich von der `.quaternary`-Kartenfläche darunter abhebt.
+- **Profilauswahl ist ein `Menu`, kein `Picker`**: Der native `Picker`-Aufklapp-
+  Pfeil war in beiden Modi kaum sichtbar (zu ähnliche Farbe zum Hintergrund)
+  und ließ sich über SwiftUI nicht gezielt einfärben. Stattdessen zeigt ein
+  `Menu` mit eigenem Label (`Text` + `Image(systemName: "chevron.up.chevron.down")`)
+  den Profilnamen und einen selbst eingefärbten Pfeil. Textfarbe über
+  `ContentView.pickerTextFarbe` modusabhängig (Dark Mode `Color(white: 0.85)`,
+  Light Mode `Color(white: 0.3)`, bewusst kein reines Schwarz/Weiß); Pfeilfarbe
+  über `ContentView.pfeilFarbe` bewusst fix `Color(white: 0.5)` (Mittelgrau) in
+  beiden Modi. Eigener Hintergrund (`Color(nsColor: .controlBackgroundColor)`),
+  damit sich das Element von der `.quaternary`-Kartenfläche darunter abhebt.
 - Sektionen (Profil, Pfade, Protokoll/Fehler, Einstellungen) in abgerundeten
   Hintergrundkarten (`.quaternary`, `RoundedRectangle(cornerRadius: 8)`).
 - Farbiger `StatusPunkt` vor der Statuszeile.

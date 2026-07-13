@@ -315,6 +315,34 @@ Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac in beiden Modi
 prüfen, ob Text und Picker-Hintergrund jetzt gut erkennbar sind, ohne zu
 hart (reines Schwarz/Weiß) zu wirken.
 
+### Update 2026-07-13: Aufklapp-Pfeil sichtbar machen, kein Auto-Fokus im Profilname-Feld
+
+Zwei Nachbesserungen aus dem Chat:
+
+1. **Aufklapp-Pfeil der Profilauswahl kaum sichtbar** (in beiden Modi zu
+   ähnliche Farbe zum Hintergrund): Der native `Picker`-Pfeil lässt sich über
+   SwiftUI nicht gezielt einfärben, daher wurde die Profilauswahl von
+   `Picker` auf `Menu` umgebaut — mit eigenem Label aus `Text` (Profilname,
+   `pickerTextFarbe`) und `Image(systemName: "chevron.up.chevron.down")` in
+   fester Mittelgrau-Farbe `Color(white: 0.5)` (neue Eigenschaft
+   `ContentView.pfeilFarbe`, bewusst gleich in Dark und Light Mode, da
+   Mittelgrau sich von beiden Kartenhintergründen ausreichend abhebt).
+   Funktional identisch zum bisherigen Picker (Profil auswählen, `.tag`
+   ersetzt durch `Button`-Aktionen je Profil im Menu).
+2. **Profilname-Textfeld hatte beim App-Start automatisch den Fokus**
+   (blinkender Cursor, ohne dass man hineingeklickt hat) — typisches macOS-
+   Verhalten, dass das erste Textfeld im Fenster automatisch zum First
+   Responder wird. Fix in `WindowAccessor`: `window.makeFirstResponder(nil)`
+   wird jetzt zusätzlich zu den anderen Fenstereinstellungen aufgerufen —
+   einmal sofort und sicherheitshalber nochmal nach 0,05 s (falls SwiftUI den
+   Fokus erst mit leichter Verzögerung selbst setzt).
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen: Pfeil im
+Menu sollte in beiden Modi gut sichtbar sein, Profilname-Feld sollte beim
+Start ohne blinkenden Cursor erscheinen und erst nach Klick hineinfokussieren.
+Falls der Fokus doch noch kurz aufblitzt, müsste die Verzögerung in
+`WindowAccessor` (aktuell 0,05 s) ggf. erhöht werden.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
