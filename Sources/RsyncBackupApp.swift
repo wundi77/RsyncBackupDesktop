@@ -4,6 +4,13 @@ import ServiceManagement
 import UserNotifications
 import UniformTypeIdentifiers
 
+// MARK: - Farben
+// Gedämpftes, nicht zu grelles Grün als App-weite Signalfarbe (ersetzt das
+// System-Blau als Akzent für Buttons, Toggles und Statushinweise).
+extension Color {
+    static let backupAccent = Color(red: 0.42, green: 0.72, blue: 0.55)
+}
+
 // MARK: - Profil
 // Ein Backup-Profil: benanntes Quelle/Ziel-Paar. Mehrere davon werden
 // gespeichert und können in der Oberfläche umgeschaltet werden.
@@ -448,11 +455,11 @@ private struct PfadZeile: View {
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(wirdÜbersogen ? Color.accentColor.opacity(0.15) : Color.clear)
+                .fill(wirdÜbersogen ? Color.backupAccent.opacity(0.15) : Color.clear)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .strokeBorder(wirdÜbersogen ? Color.accentColor : Color.clear, lineWidth: 1.5)
+                .strokeBorder(wirdÜbersogen ? Color.backupAccent : Color.clear, lineWidth: 1.5)
         )
         .animation(.easeInOut(duration: 0.15), value: wirdÜbersogen)
         .onDrop(of: [.fileURL], isTargeted: $wirdÜbersogen) { providers in
@@ -477,7 +484,7 @@ private struct StatusPunkt: View {
 
     var farbe: Color {
         if manager.isRunning && manager.isPaused { return .yellow }
-        if manager.isRunning { return .green }
+        if manager.isRunning { return .backupAccent }
         if manager.lastLine.hasPrefix("⚠️") || manager.lastLine.hasPrefix("Fehler") { return .red }
         return Color.secondary.opacity(0.5)
     }
@@ -491,14 +498,57 @@ private struct StatusPunkt: View {
     }
 }
 
+// Konfiguriert das dahinterliegende NSWindow für den schwebenden Look: keine
+// sichtbare Titelleiste, kein Titeltext, kein Fensterschatten (den übernimmt
+// stattdessen die abgerundete Karte selbst). Die System-Ampel (Schließen/
+// Minimieren/Zoomen) bleibt erhalten, wirkt aber dank transparenter
+// Titelleiste dezent statt in einer dicken Leiste.
+private struct WindowAccessor: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            guard let window = view.window else { return }
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.isOpaque = false
+            window.backgroundColor = .clear
+            window.hasShadow = false
+            window.isMovableByWindowBackground = true
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
 // MARK: - UI
 struct ContentView: View {
     @ObservedObject var manager: BackupManager
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("rsync Backup")
-                .font(.title2.bold())
+        ZStack {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(nsColor: .windowBackgroundColor))
+                .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
+
+            VStack(alignment: .leading, spacing: 8) {
+            // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
+            // oben links kommt vom transparenten Fenster, siehe WindowAccessor).
+            HStack {
+                Spacer()
+                Button {
+                    isDarkMode.toggle()
+                } label: {
+                    Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .frame(width: 22, height: 22)
+                        .background(.quaternary, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .help(isDarkMode ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln")
+            }
 
             // Profil-Auswahl + Verwaltung
             VStack(alignment: .leading, spacing: 6) {
@@ -638,9 +688,14 @@ struct ContentView: View {
             .padding(8)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
 
+            }
+            .padding(20)
         }
-        .padding(16)
+        .tint(Color.backupAccent)
+        .padding(12)
+        .background(WindowAccessor())
         .frame(minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
@@ -653,9 +708,10 @@ struct RsyncBackupDesktopApp: App {
     @StateObject private var manager = BackupManager()
 
     var body: some Scene {
-        WindowGroup("rsync Backup") {
+        WindowGroup {
             ContentView(manager: manager)
         }
         .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
     }
 }

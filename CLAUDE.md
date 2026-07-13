@@ -65,8 +65,13 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
     umbenennen, Quelle/Ziel wählen, Testlauf-Toggle, Start/Abbrechen,
     ausklappbare Protokoll-/Fehler-Zusammenfassung, Autostart- und
     Mitteilungs-Toggle).
-  - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` mit `ContentView`
-    als Inhalt, `.windowResizability(.contentSize)`.
+  - `WindowAccessor`: `NSViewRepresentable`, greift auf das `NSWindow` zu und
+    macht die Titelleiste transparent/titellos, deaktiviert den nativen
+    Fensterschatten (`hasShadow = false`, den übernimmt die abgerundete Karte
+    per SwiftUI-`.shadow`) und aktiviert `isMovableByWindowBackground`.
+  - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` (ohne Titel-String)
+    mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
+    `.windowStyle(.hiddenTitleBar)`.
 - `make_icon.swift` — Swift-Skript (läuft auf dem Mac beim Build): zeichnet
   alle Icon-Größen (16–1024 px) als PNG in `AppIcon.iconset/`, blauer
   Verlauf + SF Symbol `externaldrive.badge.timemachine` in Weiß.
@@ -106,6 +111,21 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
 
 ## UI-Stil
 
+- **Akzentfarbe**: gedämpftes Grün `Color.backupAccent`
+  (`Color(red: 0.42, green: 0.72, blue: 0.55)`) statt System-Blau — via
+  `.tint(Color.backupAccent)` auf der Wurzel-View, greift auf Buttons,
+  Toggles, Picker und `ProgressView`. Auch der laufende `StatusPunkt` nutzt
+  dieses Grün.
+- **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts
+  (Mond-/Sonnen-Symbol), toggelt `@AppStorage("isDarkMode")` und wird über
+  `.preferredColorScheme(...)` auf die ganze App angewendet. Default: Dark.
+- **Schwebendes Fenster**: kein Fenstertitel, keine dicke Titelleiste. Die
+  ganze App ist eine einzige abgerundete Karte (`RoundedRectangle(cornerRadius:
+  20)`, Füllung `Color(nsColor: .windowBackgroundColor)`, eigener
+  SwiftUI-`.shadow`) innerhalb eines transparenten, unbeschrifteten Fensters
+  (`WindowAccessor` + `.windowStyle(.hiddenTitleBar)`). Die System-Ampel
+  (Schließen/Minimieren/Zoomen) bleibt erhalten, wirkt aber dezent statt in
+  einer sichtbaren Menüleiste.
 - Sektionen (Profil, Pfade, Protokoll/Fehler, Einstellungen) in abgerundeten
   Hintergrundkarten (`.quaternary`, `RoundedRectangle(cornerRadius: 8)`).
 - Farbiger `StatusPunkt` vor der Statuszeile.

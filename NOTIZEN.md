@@ -112,13 +112,42 @@ Erstcommit (2026-07-09) – Duplikat von RsyncBackup, umgebaut auf Fenster-App
 `.onDrop(of: [.fileURL], isTargeted:)` gedroppte Ordner/Volumes (z. B. aus
 dem Finder) und übernimmt deren Pfad direkt ins Textfeld. Dateien werden
 per `FileManager.fileExists(isDirectory:)`-Prüfung verworfen. Beim
-Drag-Over zeigt das Feld eine farbige Umrandung (`Color.accentColor`) als
-visuelles Feedback. Import `UniformTypeIdentifiers` neu hinzugekommen.
+Drag-Over zeigt das Feld eine farbige Umrandung als visuelles Feedback
+(seit dem Redesign unten in `Color.backupAccent`, vorher `Color.accentColor`).
+Import `UniformTypeIdentifiers` neu hinzugekommen.
 
-**Wichtig:** Kompiliert wurde dies in einer Linux-Cloud-Sitzung ohne
-`swiftc` — der übliche Compile-Check (`swiftc -parse-as-library …`) konnte
-hier nicht ausgeführt werden. Vor dem produktiven Einsatz auf einem Mac
-gegenprüfen.
+### Update 2026-07-13: Redesign — Grüner Akzent, Dark/Light-Toggle, schwebendes Fenster
+
+Auf Wunsch an einem Screenshot orientiert (dunkles Wallet-UI), aber mit
+gedämpftem Grün statt Orange als Signalfarbe:
+
+- **Neue Akzentfarbe** `Color.backupAccent` (`Color(red: 0.42, green: 0.72,
+  blue: 0.55)`), per `.tint(...)` auf der Wurzel-View gesetzt — färbt Buttons,
+  Toggles, Picker, `ProgressView` und den laufenden `StatusPunkt`.
+- **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts (Mond-/
+  Sonnen-Symbol), speichert in `@AppStorage("isDarkMode")` (Default: Dark),
+  angewendet über `.preferredColorScheme(...)`.
+- **„rsync Backup"-Überschrift entfernt** — die Titelzeile ist komplett weg,
+  an ihrer Stelle steht nur noch die Zeile mit dem Dark/Light-Button.
+- **Schwebender Look**: `ContentView` ist jetzt in ein `ZStack` gepackt, das
+  eine abgerundete Karte (`RoundedRectangle(cornerRadius: 20)`, Füllung
+  `Color(nsColor: .windowBackgroundColor)`, eigener `.shadow(...)`) über den
+  gesamten Fensterinhalt legt. Ein neuer `WindowAccessor`
+  (`NSViewRepresentable`) macht dazu das `NSWindow` transparent
+  (`isOpaque = false`, `backgroundColor = .clear`), blendet Titelleiste und
+  Titeltext aus (`titlebarAppearsTransparent`, `titleVisibility = .hidden`),
+  deaktiviert den nativen Fensterschatten (`hasShadow = false`, den übernimmt
+  die Karte) und erlaubt `isMovableByWindowBackground`. Die `WindowGroup` hat
+  keinen Titel-String mehr und nutzt `.windowStyle(.hiddenTitleBar)`. Die
+  System-Ampel (Schließen/Minimieren/Zoomen) bleibt erhalten, wirkt aber
+  dezent statt in einer dicken Menüleiste.
+
+**Wichtig:** Auch dieses Redesign wurde in einer Linux-Cloud-Sitzung ohne
+`swiftc` umgesetzt — kein Compile-Check möglich. Insbesondere das
+transparente/schattenlose Fenster (`WindowAccessor`) unbedingt zuerst auf
+einem Mac gegenprüfen, bevor es produktiv verteilt wird (Zusammenspiel von
+`NSWindow`-Transparenz, `.hiddenTitleBar` und der Karten-Schatten-Optik kann
+in Details vom erwarteten Ergebnis abweichen).
 
 ## Bekannte Einschränkungen
 

@@ -42,7 +42,10 @@ Das Backup läuft direkt in der App; der Fortschritt wird unten als Statuszeile 
 
 ## Benutzen
 
-- Die App öffnet sich als normales Fenster (mit Dock-Icon).
+- Die App öffnet sich als schwebendes, randloses Fenster (mit Dock-Icon) —
+  nur eine durchgängige, abgerundete Fläche, keine dicke Titelleiste.
+- Oben rechts schaltet ein dezenter Mond-/Sonnen-Button zwischen **Dark**- und
+  **Light Mode** um, unabhängig von der Systemeinstellung.
 - Wähle **Quelle** und **Ziel** über „Wählen…", tippe/füge den Pfad direkt ins
   Textfeld ein, oder ziehe einen **Ordner oder ein Volume** (z. B. aus dem
   Finder oder vom Schreibtisch) direkt in das jeweilige Feld.
