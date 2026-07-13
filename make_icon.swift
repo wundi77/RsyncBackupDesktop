@@ -21,10 +21,11 @@ func zeichneIcon(pixel: Int) -> NSImage {
     ctx.addPath(path)
     ctx.clip()
 
-    // Verlauf: helles Blau oben → kräftiges Blau unten
+    // Verlauf: helles Grün oben → kräftiges Grün unten (passend zum
+    // App-Akzent Color.backupAccent in RsyncBackupApp.swift)
     let farben = [
-        CGColor(red: 0.20, green: 0.60, blue: 1.00, alpha: 1.0),
-        CGColor(red: 0.00, green: 0.38, blue: 0.90, alpha: 1.0),
+        CGColor(red: 0.40, green: 0.78, blue: 0.50, alpha: 1.0),
+        CGColor(red: 0.15, green: 0.48, blue: 0.24, alpha: 1.0),
     ] as CFArray
     let gradient = CGGradient(
         colorsSpace: CGColorSpaceCreateDeviceRGB(),

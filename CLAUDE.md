@@ -75,8 +75,9 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
     mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
     `.windowStyle(.hiddenTitleBar)`.
 - `make_icon.swift` — Swift-Skript (läuft auf dem Mac beim Build): zeichnet
-  alle Icon-Größen (16–1024 px) als PNG in `AppIcon.iconset/`, blauer
-  Verlauf + SF Symbol `externaldrive.badge.timemachine` in Weiß.
+  alle Icon-Größen (16–1024 px) als PNG in `AppIcon.iconset/`, grüner
+  Verlauf (passend zu `Color.backupAccent`) + SF Symbol
+  `externaldrive.badge.timemachine` in Weiß.
 - `build.command` — Doppelklick-Build: ruft `swift make_icon.swift` +
   `iconutil` auf, kompiliert, baut `.app`-Bundle, schreibt `Info.plist`,
   signiert ad-hoc.
@@ -110,6 +111,17 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
 - **Autostart**: „Beim Login automatisch starten" via `SMAppService`
   (macOS 13+) — startet die App normal (mit Fenster/Dock-Icon), kein
   Hintergrundstart wie bei der Menüleisten-Variante.
+- **Fortschrittsbalken**: `ProgressView(value: manager.progress)` über die
+  volle Breite, nur während eines Laufs sichtbar. `progress` wird per
+  `BackupManager.parseProgress(from:)` (Regex `(\d{1,3})%`) aus der
+  rsync `-P`-Fortschrittszeile der aktuell übertragenen Datei geparst — kein
+  Gesamtfortschritt über alle Dateien, da das fest verdrahtete Kommando kein
+  `--info=progress2` nutzt. Bei Erfolg wird `progress` am Ende auf `1` gesetzt.
+- **Bestätigungsdialog bei leerer Quelle**: Klick auf „Backup starten" prüft
+  (nur wenn kein Testlauf) per `BackupManager.sourceLooksEmpty()`, ob die
+  Quelle keine Einträge enthält. Falls ja, zeigt ein `.confirmationDialog`
+  eine Warnung, da eine leere Quelle bei aktivem `--delete` sonst
+  kommentarlos alle Dateien im Ziel löschen würde.
 
 ## UI-Stil
 

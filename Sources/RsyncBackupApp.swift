@@ -31,6 +31,7 @@ final class BackupManager: ObservableObject {
     @Published var notifyOnFinish: Bool = UserDefaults.standard.bool(forKey: "notifyOnFinish")
     @Published var isRunning: Bool = false
     @Published var isPaused: Bool = false
+    @Published var progress: Double = 0
     @Published var lastLine: String = "Bereit."
     @Published var log: String = ""
     @Published var errors: String = ""
@@ -42,6 +43,20 @@ final class BackupManager: ObservableObject {
     private var backupStartDate: Date?
     private let profilesKey = "profiles"
     private let selectedKey = "selectedProfileID"
+
+    // Erkennt die Prozent-Angabe aus der rsync `-P`-Fortschrittszeile
+    // (z. B. "1.234.567  45%  12,34MB/s    0:00:03") für den Fortschrittsbalken.
+    // Bezieht sich auf die aktuell übertragene Datei, nicht den Gesamtjob —
+    // rsync liefert ohne `--info=progress2` keinen Gesamtfortschritt.
+    private static let percentRegex = try! NSRegularExpression(pattern: #"(\d{1,3})%"#)
+
+    private func parseProgress(from text: String) -> Double? {
+        let range = NSRange(text.startIndex..., in: text)
+        guard let match = Self.percentRegex.matches(in: text, range: range).last,
+              let valueRange = Range(match.range(at: 1), in: text),
+              let value = Double(text[valueRange]) else { return nil }
+        return min(max(value / 100, 0), 1)
+    }
 
     // Bekannte rsync-Exit-Codes in verständlichem Deutsch (siehe `man rsync`).
     private static let exitCodeDescriptions: [Int32: String] = [
@@ -169,6 +184,13 @@ final class BackupManager: ObservableObject {
         }
     }
 
+    // Prüft, ob die Quelle keine Einträge enthält. Wichtig als Sicherheitscheck:
+    // bei aktivem --delete würde eine (versehentlich) leere Quelle sonst alle
+    // Dateien im Ziel löschen, ohne dass das offensichtlich wäre.
+    func sourceLooksEmpty() -> Bool {
+        (try? FileManager.default.contentsOfDirectory(atPath: source))?.isEmpty ?? false
+    }
+
     // MARK: - Backup
 
     func startBackup() {
@@ -186,6 +208,7 @@ final class BackupManager: ObservableObject {
         backupStartDate = Date()
         isRunning = true
         isPaused = false
+        progress = 0
         lastLine = dryRun ? "Testlauf läuft …" : "Backup läuft …"
 
         // rsync mit deinen Optionen. Quellpfad endet auf "/" damit der INHALT
@@ -220,6 +243,10 @@ final class BackupManager: ObservableObject {
                 if let last = lines.last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty }) {
                     self?.lastLine = String(last)
                 }
+                // Prozentangabe aus der rsync -P-Fortschrittszeile für den Balken.
+                if let p = self?.parseProgress(from: text) {
+                    self?.progress = p
+                }
             }
         }
 
@@ -239,6 +266,7 @@ final class BackupManager: ObservableObject {
                 self?.isRunning = false
                 self?.isPaused = false
                 let success = (p.terminationStatus == 0)
+                if success { self?.progress = 1 }
                 let prefix = (self?.dryRun ?? false) ? "Testlauf" : "Backup"
                 self?.lastLine = success
                     ? "✅ \(prefix) abgeschlossen."
@@ -523,6 +551,7 @@ private struct WindowAccessor: NSViewRepresentable {
 struct ContentView: View {
     @ObservedObject var manager: BackupManager
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
+    @State private var zeigeLeereQuelleWarnung = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -607,6 +636,15 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
+            // Fortschrittsbalken über die volle Breite, nur während eines Laufs
+            // sichtbar. Bezieht sich auf die aktuell übertragene Datei (siehe
+            // BackupManager.parseProgress), da rsync ohne --info=progress2
+            // keinen Gesamtfortschritt über alle Dateien liefert.
+            if manager.isRunning {
+                ProgressView(value: manager.progress)
+                    .tint(Color.backupAccent)
+            }
+
             // Testlauf (Dry-Run) – direkt über dem Start-Button
             Toggle("Testlauf (zeigt nur, was passieren würde)", isOn: Binding(
                 get: { manager.dryRun },
@@ -625,13 +663,16 @@ struct ContentView: View {
                         Label(manager.isPaused ? "Fortsetzen" : "Pause",
                               systemImage: manager.isPaused ? "play.fill" : "pause.fill")
                     }
-                    if !manager.isPaused {
-                        Spacer()
-                        ProgressView().controlSize(.small)
-                    }
+                    Spacer()
                 }
             } else {
-                Button { manager.startBackup() } label: {
+                Button {
+                    if !manager.dryRun && manager.sourceLooksEmpty() {
+                        zeigeLeereQuelleWarnung = true
+                    } else {
+                        manager.startBackup()
+                    }
+                } label: {
                     Label(manager.dryRun ? "Testlauf starten" : "Backup starten",
                           systemImage: "arrow.triangle.2.circlepath")
                         .frame(maxWidth: .infinity)
@@ -639,6 +680,16 @@ struct ContentView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .disabled(manager.source.isEmpty || manager.destination.isEmpty)
+                .confirmationDialog(
+                    "Quelle ist leer",
+                    isPresented: $zeigeLeereQuelleWarnung,
+                    titleVisibility: .visible
+                ) {
+                    Button("Trotzdem starten", role: .destructive) { manager.startBackup() }
+                    Button("Abbrechen", role: .cancel) {}
+                } message: {
+                    Text("Die Quelle enthält keine Dateien. Da --delete aktiv ist, würde das Ziel dabei komplett geleert. Wirklich fortfahren?")
+                }
             }
 
             // Protokoll + Fehler

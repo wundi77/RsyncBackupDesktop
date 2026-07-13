@@ -172,6 +172,35 @@ Auch diese Korrektur ist ungetestet (kein `swiftc` in dieser Sitzung) — bitte
 auf dem Mac gegenprüfen, insbesondere ob die Titelleiste jetzt wirklich
 komplett unauffällig ist und die Picker-Textfarbe im Dropdown gut lesbar ist.
 
+### Update 2026-07-13: Bestätigungsdialog, grünes App-Icon, Fortschrittsbalken
+
+- **Bestätigungsdialog vor „Backup starten"**: Neue `BackupManager.sourceLooksEmpty()`
+  prüft per `FileManager.contentsOfDirectory`, ob die Quelle leer ist. Klick
+  auf „Backup starten" (nicht im Testlauf) zeigt in diesem Fall ein
+  `.confirmationDialog` mit der Warnung, dass eine leere Quelle bei aktivem
+  `--delete` das komplette Ziel leeren würde — mit „Trotzdem starten"
+  (destructive) und „Abbrechen".
+- **App-Icon in Grün**: `make_icon.swift` zeichnet den Verlauf jetzt in Grün
+  (`0.40/0.78/0.50` → `0.15/0.48/0.24`) statt Blau, passend zu
+  `Color.backupAccent`. Wirkt erst nach dem nächsten `build.command`-Lauf
+  (Icon wird dort neu erzeugt, nicht separat versioniert).
+- **Fortschrittsbalken über die volle Fensterbreite**: `BackupManager` hat
+  ein neues `@Published var progress: Double`, befüllt von
+  `parseProgress(from:)` — parst per Regex `(\d{1,3})%` die Prozentangabe aus
+  der rsync `-P`-Fortschrittszeile (die im Kommando bereits enthalten ist).
+  **Wichtig:** Das ist der Fortschritt der *aktuell übertragenen Datei*, kein
+  Gesamtfortschritt über den ganzen Job — rsync liefert Letzteres nur mit
+  `--info=progress2`, das fest verdrahtete Kommando wurde bewusst nicht
+  geändert. `ContentView` zeigt dazu `ProgressView(value: manager.progress)`
+  unterhalb der Statuszeile, nur sichtbar während `isRunning`. Der bisherige
+  kleine indeterminate Spinner neben Pause/Abbrechen wurde entfernt (durch
+  den neuen Balken ersetzt).
+
+Auch dieses Update ist ungetestet (kein `swiftc` in dieser Sitzung) — bitte
+auf dem Mac prüfen, ob die Regex zuverlässig greift (rsync-Ausgabeformat kann
+je nach Version leicht variieren) und ob der Bestätigungsdialog korrekt
+auslöst.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

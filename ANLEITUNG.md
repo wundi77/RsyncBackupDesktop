@@ -42,16 +42,22 @@ Das Backup läuft direkt in der App; der Fortschritt wird unten als Statuszeile 
 
 ## Benutzen
 
-- Die App öffnet sich als schwebendes, randloses Fenster (mit Dock-Icon) —
-  nur eine durchgängige, abgerundete Fläche, keine dicke Titelleiste.
+- Die App öffnet sich als normales Fenster (mit Dock-Icon), aber ohne
+  sichtbare Titelleiste oder App-Namen oben — nur eine durchgängige dunkle
+  bzw. helle Fläche, auf der die System-Ampel (Schließen/Minimieren/Zoomen)
+  einfach frei steht.
 - Oben rechts schaltet ein dezenter Mond-/Sonnen-Button zwischen **Dark**- und
   **Light Mode** um, unabhängig von der Systemeinstellung.
 - Wähle **Quelle** und **Ziel** über „Wählen…", tippe/füge den Pfad direkt ins
   Textfeld ein, oder ziehe einen **Ordner oder ein Volume** (z. B. aus dem
   Finder oder vom Schreibtisch) direkt in das jeweilige Feld.
-- Klicke **Backup starten**. Während es läuft, kannst du **Pause** drücken
-  (hält rsync an, ohne abzubrechen) und mit **Fortsetzen** weitermachen – oder
-  jederzeit **Abbrechen**.
+- Klicke **Backup starten**. Ist die Quelle leer, fragt die App vorher
+  sicherheitshalber nach, da sonst wegen `--delete` das komplette Ziel
+  geleert würde.
+- Während das Backup läuft, zeigt ein Balken über die volle Fensterbreite
+  den Fortschritt der gerade übertragenen Datei. Außerdem kannst du **Pause**
+  drücken (hält rsync an, ohne abzubrechen) und mit **Fortsetzen**
+  weitermachen – oder jederzeit **Abbrechen**.
 - Die zuletzt gewählten Pfade werden gemerkt.
 - Zum Beenden: rotes Schließen-Kreuz oder ⌘Q (normales macOS-Fensterverhalten).
 
