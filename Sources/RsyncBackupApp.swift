@@ -5,10 +5,10 @@ import UserNotifications
 import UniformTypeIdentifiers
 
 // MARK: - Farben
-// Gedämpftes, nicht zu grelles Grün als App-weite Signalfarbe (ersetzt das
+// Kräftiges, aber nicht grelles Grün als App-weite Signalfarbe (ersetzt das
 // System-Blau als Akzent für Buttons, Toggles und Statushinweise).
 extension Color {
-    static let backupAccent = Color(red: 0.42, green: 0.72, blue: 0.55)
+    static let backupAccent = Color(red: 0.25, green: 0.62, blue: 0.33)
 }
 
 // MARK: - Profil
@@ -498,11 +498,12 @@ private struct StatusPunkt: View {
     }
 }
 
-// Konfiguriert das dahinterliegende NSWindow für den schwebenden Look: keine
-// sichtbare Titelleiste, kein Titeltext, kein Fensterschatten (den übernimmt
-// stattdessen die abgerundete Karte selbst). Die System-Ampel (Schließen/
-// Minimieren/Zoomen) bleibt erhalten, wirkt aber dank transparenter
-// Titelleiste dezent statt in einer dicken Leiste.
+// Konfiguriert das dahinterliegende NSWindow: keine sichtbare Titelleiste,
+// kein Titeltext. Das Fenster bleibt vollständig blickdicht (keine
+// Transparenz) — der reguläre Fensterhintergrund füllt die ganze Fläche
+// durchgängig, die System-Ampel (Schließen/Minimieren/Zoomen) steht dank
+// transparenter Titelleiste einfach frei auf dieser Fläche statt in einer
+// sichtbaren Menüleiste.
 private struct WindowAccessor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
@@ -510,9 +511,6 @@ private struct WindowAccessor: NSViewRepresentable {
             guard let window = view.window else { return }
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
-            window.isOpaque = false
-            window.backgroundColor = .clear
-            window.hasShadow = false
             window.isMovableByWindowBackground = true
         }
         return view
@@ -527,14 +525,9 @@ struct ContentView: View {
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(nsColor: .windowBackgroundColor))
-                .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
-
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
-            // oben links kommt vom transparenten Fenster, siehe WindowAccessor).
+            // oben links kommt vom titellosen Fenster, siehe WindowAccessor).
             HStack {
                 Spacer()
                 Button {
@@ -558,7 +551,9 @@ struct ContentView: View {
                         set: { manager.selectedProfileID = $0; manager.persist() }
                     )) {
                         ForEach(manager.profiles) { p in
-                            Text(p.name.isEmpty ? "(ohne Namen)" : p.name).tag(p.id)
+                            Text(p.name.isEmpty ? "(ohne Namen)" : p.name)
+                                .foregroundColor(Color(white: 0.85))
+                                .tag(p.id)
                         }
                     }
                     .labelsHidden()
@@ -687,14 +682,13 @@ struct ContentView: View {
             }
             .padding(8)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-
-            }
-            .padding(20)
         }
+        .padding(20)
         .tint(Color.backupAccent)
-        .padding(12)
-        .background(WindowAccessor())
         .frame(minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .background(WindowAccessor())
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }

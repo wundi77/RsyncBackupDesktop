@@ -143,11 +143,34 @@ gedämpftem Grün statt Orange als Signalfarbe:
   dezent statt in einer dicken Menüleiste.
 
 **Wichtig:** Auch dieses Redesign wurde in einer Linux-Cloud-Sitzung ohne
-`swiftc` umgesetzt — kein Compile-Check möglich. Insbesondere das
-transparente/schattenlose Fenster (`WindowAccessor`) unbedingt zuerst auf
-einem Mac gegenprüfen, bevor es produktiv verteilt wird (Zusammenspiel von
-`NSWindow`-Transparenz, `.hiddenTitleBar` und der Karten-Schatten-Optik kann
-in Details vom erwarteten Ergebnis abweichen).
+`swiftc` umgesetzt — kein Compile-Check möglich.
+
+### Update 2026-07-13 (Korrektur nach erstem Test): keine Fenster-Transparenz mehr, kräftigeres Grün, hellere Picker-Schrift
+
+Rückmeldung nach dem ersten Test: die transparente/schwebende Karten-Optik
+war nicht gewünscht — das Fenster soll stattdessen ganz normal blickdicht
+sein, nur eben ohne Titeltext/dicke Titelleiste.
+
+- `WindowAccessor` macht jetzt **nur noch** die Titelleiste transparent/
+  titellos (`titlebarAppearsTransparent`, `titleVisibility = .hidden`) —
+  `isOpaque`, `backgroundColor` und `hasShadow` werden nicht mehr angefasst,
+  das Fenster bleibt also vollständig undurchsichtig mit normalem
+  Fensterschatten.
+- `ContentView` hat kein `ZStack`/`RoundedRectangle`/`.shadow` mehr; der
+  Hintergrund ist einfach `Color(nsColor: .windowBackgroundColor)` über die
+  volle Fenstergröße (`.frame(maxWidth: .infinity, maxHeight: .infinity)`).
+  Die System-Ampel steht dadurch frei auf der durchgängigen dunklen/hellen
+  Fläche, ohne sichtbares Menüleisten-Rechteck darüber.
+- `Color.backupAccent` kräftiger/grüner gemacht:
+  `Color(red: 0.25, green: 0.62, blue: 0.33)` (vorher zu mintfarben).
+- Die `Text`-Einträge im Profil-Picker haben jetzt
+  `.foregroundColor(Color(white: 0.85))`, da das native Dropdown-Menü im
+  Dark Mode sonst schwer lesbaren dunklen Text zeigte. Testweise umgesetzt —
+  bei Bedarf auf dem Mac nachjustieren (Ton/Helligkeit).
+
+Auch diese Korrektur ist ungetestet (kein `swiftc` in dieser Sitzung) — bitte
+auf dem Mac gegenprüfen, insbesondere ob die Titelleiste jetzt wirklich
+komplett unauffällig ist und die Picker-Textfarbe im Dropdown gut lesbar ist.
 
 ## Bekannte Einschränkungen
 

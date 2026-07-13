@@ -66,9 +66,11 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
     ausklappbare Protokoll-/Fehler-Zusammenfassung, Autostart- und
     Mitteilungs-Toggle).
   - `WindowAccessor`: `NSViewRepresentable`, greift auf das `NSWindow` zu und
-    macht die Titelleiste transparent/titellos, deaktiviert den nativen
-    Fensterschatten (`hasShadow = false`, den übernimmt die abgerundete Karte
-    per SwiftUI-`.shadow`) und aktiviert `isMovableByWindowBackground`.
+    macht nur die Titelleiste transparent/titellos
+    (`titlebarAppearsTransparent`, `titleVisibility = .hidden`) und aktiviert
+    `isMovableByWindowBackground`. Das Fenster bleibt vollständig blickdicht
+    (keine Fenster-Transparenz, kein Custom-Schatten) — der reguläre
+    Fensterhintergrund füllt durchgängig die ganze Fläche.
   - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` (ohne Titel-String)
     mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
     `.windowStyle(.hiddenTitleBar)`.
@@ -111,21 +113,24 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
 
 ## UI-Stil
 
-- **Akzentfarbe**: gedämpftes Grün `Color.backupAccent`
-  (`Color(red: 0.42, green: 0.72, blue: 0.55)`) statt System-Blau — via
+- **Akzentfarbe**: kräftiges, nicht grelles Grün `Color.backupAccent`
+  (`Color(red: 0.25, green: 0.62, blue: 0.33)`) statt System-Blau — via
   `.tint(Color.backupAccent)` auf der Wurzel-View, greift auf Buttons,
   Toggles, Picker und `ProgressView`. Auch der laufende `StatusPunkt` nutzt
   dieses Grün.
 - **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts
   (Mond-/Sonnen-Symbol), toggelt `@AppStorage("isDarkMode")` und wird über
   `.preferredColorScheme(...)` auf die ganze App angewendet. Default: Dark.
-- **Schwebendes Fenster**: kein Fenstertitel, keine dicke Titelleiste. Die
-  ganze App ist eine einzige abgerundete Karte (`RoundedRectangle(cornerRadius:
-  20)`, Füllung `Color(nsColor: .windowBackgroundColor)`, eigener
-  SwiftUI-`.shadow`) innerhalb eines transparenten, unbeschrifteten Fensters
-  (`WindowAccessor` + `.windowStyle(.hiddenTitleBar)`). Die System-Ampel
-  (Schließen/Minimieren/Zoomen) bleibt erhalten, wirkt aber dezent statt in
-  einer sichtbaren Menüleiste.
+- **Kein Fenstertitel, keine dicke Titelleiste**: `WindowAccessor` blendet nur
+  Titeltext/-leiste aus (`.windowStyle(.hiddenTitleBar)`); das Fenster selbst
+  bleibt vollständig blickdicht (keine Transparenz, kein Custom-Schatten) —
+  der reguläre, durchgängige Fensterhintergrund (`Color(nsColor:
+  .windowBackgroundColor)`) füllt die komplette Fläche. Die System-Ampel
+  (Schließen/Minimieren/Zoomen) steht dadurch einfach frei auf dieser Fläche,
+  ohne sichtbare Menüleiste darüber.
+- Picker-Einträge (Profilauswahl) haben eine explizite helle Grau-Textfarbe
+  (`Color(white: 0.85)`), da das native Dropdown-Menü im Dark Mode sonst
+  schwer lesbaren dunklen Text zeigen kann.
 - Sektionen (Profil, Pfade, Protokoll/Fehler, Einstellungen) in abgerundeten
   Hintergrundkarten (`.quaternary`, `RoundedRectangle(cornerRadius: 8)`).
 - Farbiger `StatusPunkt` vor der Statuszeile.
