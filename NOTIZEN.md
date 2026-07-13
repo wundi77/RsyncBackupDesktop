@@ -276,6 +276,26 @@ prüfen: Overlay sollte beim Start erscheinen (aktuell hat der Nutzer 2.6.9),
 nach `brew install rsync` und Neustart der App sollte es verschwinden und
 der Fortschrittsbalken den echten Gesamtfortschritt zeigen.
 
+### Update 2026-07-13: leichte Fenster-Transparenz (90 % Deckkraft)
+
+Auf Wunsch ist das Fenster jetzt nicht mehr komplett blickdicht, sondern
+leicht durchscheinend:
+
+- Neue Konstante `ContentView.windowHintergrundDeckkraft = 0.9`.
+- `WindowAccessor` setzt zusätzlich `window.isOpaque = false` und
+  `window.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(...)`.
+- Die SwiftUI-Hintergrundfarbe von `ContentView` nutzt jetzt
+  `.opacity(windowHintergrundDeckkraft)` statt voller Deckkraft — **wichtig**:
+  beide Ebenen (NSWindow-Hintergrund *und* SwiftUI-Hintergrund) müssen die
+  Transparenz tragen, sonst würde die jeweils andere, undurchsichtige Ebene
+  den Effekt komplett verdecken.
+- Das Warn-Overlay `RsyncUpdateHinweis` (Update-Hinweis bei altem rsync)
+  bleibt bewusst voll deckend, damit die Warnung immer gut lesbar ist.
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob 90 %
+optisch gut wirkt (leicht durchscheinend, aber Inhalt weiterhin gut lesbar)
+oder ob der Wert noch feinjustiert werden sollte.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

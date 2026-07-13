@@ -161,12 +161,16 @@ rsync-Flags.)
   (Mond-/Sonnen-Symbol), toggelt `@AppStorage("isDarkMode")` und wird über
   `.preferredColorScheme(...)` auf die ganze App angewendet. Default: Dark.
 - **Kein Fenstertitel, keine dicke Titelleiste**: `WindowAccessor` blendet nur
-  Titeltext/-leiste aus (`.windowStyle(.hiddenTitleBar)`); das Fenster selbst
-  bleibt vollständig blickdicht (keine Transparenz, kein Custom-Schatten) —
-  der reguläre, durchgängige Fensterhintergrund (`Color(nsColor:
-  .windowBackgroundColor)`) füllt die komplette Fläche. Die System-Ampel
-  (Schließen/Minimieren/Zoomen) steht dadurch einfach frei auf dieser Fläche,
-  ohne sichtbare Menüleiste darüber.
+  Titeltext/-leiste aus (`.windowStyle(.hiddenTitleBar)`); der reguläre
+  Fensterhintergrund füllt die komplette Fläche durchgängig. Die
+  System-Ampel (Schließen/Minimieren/Zoomen) steht dadurch einfach frei auf
+  dieser Fläche, ohne sichtbare Menüleiste darüber.
+- **Leichte Fenster-Transparenz**: `ContentView.windowHintergrundDeckkraft`
+  (`0.9`) legt die Deckkraft an einer Stelle fest — `WindowAccessor` setzt
+  `window.isOpaque = false` und `backgroundColor` mit dieser Alpha, die
+  SwiftUI-Hintergrundfarbe (`Color(nsColor: .windowBackgroundColor)`) nutzt
+  `.opacity(...)` mit demselben Wert (beide Ebenen müssen die Transparenz
+  tragen, sonst verdeckt die eine die andere komplett).
 - Picker-Einträge (Profilauswahl) haben eine explizite helle Grau-Textfarbe
   (`Color(white: 0.85)`), da das native Dropdown-Menü im Dark Mode sonst
   schwer lesbaren dunklen Text zeigen kann.

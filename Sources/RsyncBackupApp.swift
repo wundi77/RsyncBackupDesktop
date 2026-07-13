@@ -580,11 +580,11 @@ private struct StatusPunkt: View {
 }
 
 // Konfiguriert das dahinterliegende NSWindow: keine sichtbare Titelleiste,
-// kein Titeltext. Das Fenster bleibt vollständig blickdicht (keine
-// Transparenz) — der reguläre Fensterhintergrund füllt die ganze Fläche
-// durchgängig, die System-Ampel (Schließen/Minimieren/Zoomen) steht dank
-// transparenter Titelleiste einfach frei auf dieser Fläche statt in einer
-// sichtbaren Menüleiste.
+// kein Titeltext. Der Fensterhintergrund ist leicht durchscheinend (90 %
+// Deckkraft, siehe windowHintergrundDeckkraft) statt komplett blickdicht —
+// die System-Ampel (Schließen/Minimieren/Zoomen) steht dank transparenter
+// Titelleiste einfach frei auf dieser Fläche statt in einer sichtbaren
+// Menüleiste.
 private struct WindowAccessor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
@@ -593,6 +593,9 @@ private struct WindowAccessor: NSViewRepresentable {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.isMovableByWindowBackground = true
+            window.isOpaque = false
+            window.backgroundColor = NSColor.windowBackgroundColor
+                .withAlphaComponent(ContentView.windowHintergrundDeckkraft)
         }
         return view
     }
@@ -652,6 +655,9 @@ private struct RsyncUpdateHinweis: View {
 
 // MARK: - UI
 struct ContentView: View {
+    // Leichte Transparenz statt komplett blickdichtem Fenster (90 % Deckkraft).
+    static let windowHintergrundDeckkraft: CGFloat = 0.9
+
     @ObservedObject var manager: BackupManager
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
     @State private var zeigeLeereQuelleWarnung = false
@@ -840,7 +846,7 @@ struct ContentView: View {
         .tint(Color.backupAccent)
         .frame(minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Color(nsColor: .windowBackgroundColor).opacity(Self.windowHintergrundDeckkraft))
         .background(WindowAccessor())
         .preferredColorScheme(isDarkMode ? .dark : .light)
         .overlay {
