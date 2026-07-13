@@ -36,15 +36,27 @@ identische Backup-Logik (`BackupManager`), unterscheiden sich nur im
 App-Gerüst: hier `WindowGroup` statt `MenuBarExtra`, kein `LSUIElement`.
 Funktions-Updates ggf. in beiden Repos parallel nachziehen.
 
-Der ausgeführte Befehl ist fest verdrahtet:
+Der ausgeführte Befehl ist im Kern fest verdrahtet:
 
 ```
-rsync -ahP --delete --ignore-errors --stats <Quelle>/ <Ziel>
+rsync -ah --partial --info=progress2 --delete --ignore-errors --stats <Quelle>/ <Ziel>
 ```
 
 `--stats` liefert am Laufende einen auswertbaren Zusammenfassungsblock
 (Dateianzahl, übertragene Datenmenge), der für die Kurzanzeige in der App
-geparst wird (siehe `buildSummaries` in `BackupManager`).
+geparst wird (siehe `buildSummaries` in `BackupManager`). `--info=progress2`
+liefert eine Prozentangabe für den **Gesamtfortschritt über alle Dateien**
+(statt nur der aktuellen Einzeldatei wie bei `-P`/`--progress`), aus der
+`BackupManager.parseProgress(from:)` den Fortschrittsbalken speist.
+
+**Kompatibilitäts-Fallback:** `--info=progress2` gibt es erst ab rsync 3.x.
+Apples mitgeliefertes `/usr/bin/rsync` ist auf vielen Macs noch die uralte
+Version 2.6.9 (2006, wegen GPLv3-Lizenzwechsel) ohne dieses Flag.
+`BackupManager.unterstuetztProgress2` prüft einmalig per `rsync --version`
+die Major-Version und nutzt bei < 3 automatisch `-P` statt
+`--info=progress2` — der Fortschrittsbalken zeigt dann wieder nur den
+Fortschritt der aktuellen Einzeldatei statt den Gesamtfortschritt, der
+Befehl schlägt aber nicht mit „unknown option" fehl.
 
 ## Struktur
 
@@ -114,9 +126,9 @@ geparst wird (siehe `buildSummaries` in `BackupManager`).
 - **Fortschrittsbalken**: `ProgressView(value: manager.progress)` über die
   volle Breite, nur während eines Laufs sichtbar. `progress` wird per
   `BackupManager.parseProgress(from:)` (Regex `(\d{1,3})%`) aus der
-  rsync `-P`-Fortschrittszeile der aktuell übertragenen Datei geparst — kein
-  Gesamtfortschritt über alle Dateien, da das fest verdrahtete Kommando kein
-  `--info=progress2` nutzt. Bei Erfolg wird `progress` am Ende auf `1` gesetzt.
+  rsync `--info=progress2`-Fortschrittszeile geparst — echter
+  Gesamtfortschritt über alle zu übertragenden Dateien, nicht nur die
+  aktuelle Einzeldatei. Bei Erfolg wird `progress` am Ende auf `1` gesetzt.
 - **Bestätigungsdialog bei leerer Quelle**: Klick auf „Backup starten" prüft
   (nur wenn kein Testlauf) per `BackupManager.sourceLooksEmpty()`, ob die
   Quelle keine Einträge enthält. Falls ja, zeigt ein `.confirmationDialog`

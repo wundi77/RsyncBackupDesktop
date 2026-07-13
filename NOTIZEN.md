@@ -26,11 +26,14 @@ nur im App-Gerüst. Am 2026-07-09 aus `RsyncBackup` dupliziert und auf
 Fest verdrahteter Befehl:
 
 ```
-rsync -ahP --delete --ignore-errors --stats  <Quelle>/  <Ziel>
+rsync -ah --partial --info=progress2 --delete --ignore-errors --stats  <Quelle>/  <Ziel>
 ```
 
 (Bei Testlauf wird `-n` angehängt. `--stats` liefert den Zusammenfassungsblock
-für die Kurzanzeige in der App.)
+für die Kurzanzeige in der App. `--info=progress2` liefert den
+Gesamtfortschritt über alle Dateien für den Fortschrittsbalken — seit
+2026-07-13 statt des ursprünglichen `-P`, das nur den Fortschritt der
+aktuellen Einzeldatei zeigte.)
 
 ## Wichtige Dateien
 
@@ -200,6 +203,39 @@ Auch dieses Update ist ungetestet (kein `swiftc` in dieser Sitzung) — bitte
 auf dem Mac prüfen, ob die Regex zuverlässig greift (rsync-Ausgabeformat kann
 je nach Version leicht variieren) und ob der Bestätigungsdialog korrekt
 auslöst.
+
+### Update 2026-07-13 (Nachbesserung): echter Gesamtfortschritt statt Einzeldatei
+
+Auf Wunsch wurde der Fortschrittsbalken von "aktuelle Datei" auf "echten
+Gesamtfortschritt über den ganzen Backup-Job" umgestellt:
+
+- Das fest verdrahtete rsync-Kommando wurde geändert: `-ahP` →
+  `-ah --partial --info=progress2` (`-P` ist eigentlich nur
+  `--partial --progress`; `--progress` zeigt Einzeldatei-Fortschritt,
+  `--info=progress2` zeigt den Gesamtfortschritt über alle Dateien).
+  `--stats` bleibt unverändert erhalten, `buildSummaries` ist davon nicht
+  betroffen.
+- `BackupManager.parseProgress(from:)`/die Regex selbst mussten nicht
+  geändert werden — nur die Bedeutung der geparsten Prozentzahl hat sich
+  geändert (jetzt Gesamt- statt Einzeldatei-Fortschritt).
+
+**Wichtig:** Damit weicht das Kommando erstmals bewusst von der ursprünglich
+in `CLAUDE.md` als "fest verdrahtet" beschriebenen Form ab (dort ebenfalls
+aktualisiert).
+
+Da Apples mitgeliefertes `/usr/bin/rsync` auf vielen Macs noch Version 2.6.9
+ist und `--info=progress2` erst ab rsync 3.x existiert, wurde direkt ein
+**Kompatibilitäts-Fallback** eingebaut: `BackupManager.unterstuetztProgress2`
+prüft einmalig per `rsync --version` die Major-Version. Ist sie < 3, wird
+`-P` statt `--info=progress2` verwendet — der Balken zeigt dann wieder nur
+den Fortschritt der aktuellen Einzeldatei, aber der Aufruf schlägt nicht mit
+„unknown option" fehl.
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac unbedingt prüfen:
+`rsync --version` im Terminal ausführen, um zu sehen, welcher Pfad zutrifft
+(Apple-Stock 2.6.9 → Fallback `-P`, Homebrew-rsync 3.x → echtes
+`--info=progress2`), und ob die Fortschrittsanzeige in beiden Fällen
+funktioniert.
 
 ## Bekannte Einschränkungen
 

@@ -44,10 +44,36 @@ final class BackupManager: ObservableObject {
     private let profilesKey = "profiles"
     private let selectedKey = "selectedProfileID"
 
-    // Erkennt die Prozent-Angabe aus der rsync `-P`-Fortschrittszeile
-    // (z. B. "1.234.567  45%  12,34MB/s    0:00:03") für den Fortschrittsbalken.
-    // Bezieht sich auf die aktuell übertragene Datei, nicht den Gesamtjob —
-    // rsync liefert ohne `--info=progress2` keinen Gesamtfortschritt.
+    // Apples mitgeliefertes /usr/bin/rsync ist auf vielen Macs noch Version
+    // 2.6.9 (2006, wegen GPLv3-Lizenzwechsel) und kennt kein
+    // `--info=progress2` (erst ab rsync 3.x). Einmalig per `--version` prüfen,
+    // damit wir auf altem rsync automatisch auf `-P` zurückfallen, statt dass
+    // jeder Backup-Start mit "unknown option" fehlschlägt.
+    private static let unterstuetztProgress2: Bool = {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: "/usr/bin/rsync")
+        proc.arguments = ["--version"]
+        let pipe = Pipe()
+        proc.standardOutput = pipe
+        do {
+            try proc.run()
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            proc.waitUntilExit()
+            guard let text = String(data: data, encoding: .utf8),
+                  let match = try? NSRegularExpression(pattern: #"version (\d+)\."#)
+                    .firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+                  let range = Range(match.range(at: 1), in: text),
+                  let major = Int(text[range]) else { return false }
+            return major >= 3
+        } catch {
+            return false
+        }
+    }()
+
+    // Erkennt die Prozent-Angabe aus der rsync `--info=progress2`-Fortschrittszeile
+    // (z. B. "1.234.567  45%  12,34MB/s    0:00:03 (xfr#5, to-chk=10/20)") für
+    // den Fortschrittsbalken. Dank progress2 ist das der Gesamtfortschritt über
+    // alle zu übertragenden Dateien, nicht nur der der aktuellen Einzeldatei.
     private static let percentRegex = try! NSRegularExpression(pattern: #"(\d{1,3})%"#)
 
     private func parseProgress(from text: String) -> Double? {
@@ -218,7 +244,13 @@ final class BackupManager: ObservableObject {
 
         // --stats liefert am Ende einen auswertbaren Zusammenfassungsblock
         // (Dateianzahl, übertragene Datenmenge) für die verständliche Anzeige.
-        var args = ["-ahP", "--delete", "--ignore-errors", "--stats"]
+        // --info=progress2 (nur ab rsync 3.x) zeigt den Gesamtfortschritt über
+        // alle Dateien für den Fortschrittsbalken; auf altem rsync (Apples
+        // mitgeliefertes 2.6.9) fällt es auf -P zurück (Fortschritt der
+        // aktuellen Einzeldatei statt Gesamtfortschritt).
+        var args = ["-ah", "--partial"]
+        args.append(Self.unterstuetztProgress2 ? "--info=progress2" : "-P")
+        args += ["--delete", "--ignore-errors", "--stats"]
         if dryRun { args.append("-n") } // Testlauf: nichts wird verändert.
         args += [src, destination]
 
@@ -636,10 +668,9 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            // Fortschrittsbalken über die volle Breite, nur während eines Laufs
-            // sichtbar. Bezieht sich auf die aktuell übertragene Datei (siehe
-            // BackupManager.parseProgress), da rsync ohne --info=progress2
-            // keinen Gesamtfortschritt über alle Dateien liefert.
+            // Fortschrittsbalken über die volle Breite, nur während eines
+            // Laufs sichtbar. Zeigt dank --info=progress2 den echten
+            // Gesamtfortschritt über alle Dateien (siehe BackupManager.progress).
             if manager.isRunning {
                 ProgressView(value: manager.progress)
                     .tint(Color.backupAccent)
