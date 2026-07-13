@@ -51,12 +51,27 @@ liefert eine Prozentangabe für den **Gesamtfortschritt über alle Dateien**
 
 **Kompatibilitäts-Fallback:** `--info=progress2` gibt es erst ab rsync 3.x.
 Apples mitgeliefertes `/usr/bin/rsync` ist auf vielen Macs noch die uralte
-Version 2.6.9 (2006, wegen GPLv3-Lizenzwechsel) ohne dieses Flag.
-`BackupManager.unterstuetztProgress2` prüft einmalig per `rsync --version`
-die Major-Version und nutzt bei < 3 automatisch `-P` statt
-`--info=progress2` — der Fortschrittsbalken zeigt dann wieder nur den
-Fortschritt der aktuellen Einzeldatei statt den Gesamtfortschritt, der
-Befehl schlägt aber nicht mit „unknown option" fehl.
+Version 2.6.9 (2006, wegen GPLv3-Lizenzwechsel) ohne dieses Flag. (Ab macOS
+Sequoia 15.4 ersetzt Apple es durch `openrsync` — das ist zwar aktiv gepflegt,
+unterstützt aber ebenfalls kein `--info=progress2`, nur eine Teilmenge der
+rsync-Flags.)
+
+- `BackupManager.rsyncPfad` sucht zuerst nach einem über Homebrew
+  installierten rsync (`/opt/homebrew/bin/rsync`, `/usr/local/bin/rsync`)
+  und bevorzugt das; sonst wird `/usr/bin/rsync` (das System-rsync)
+  verwendet.
+- `BackupManager.rsyncVersionMajor`/`unterstuetztProgress2` prüfen per
+  `rsync --version` die Major-Version des tatsächlich verwendeten Pfads und
+  wählen bei < 3 automatisch `-P` statt `--info=progress2` — der
+  Fortschrittsbalken zeigt dann nur den Fortschritt der aktuellen
+  Einzeldatei statt den Gesamtfortschritt, der Befehl schlägt aber nicht mit
+  „unknown option" fehl.
+- **Update-Hinweis-Overlay**: Bei jedem App-Start prüft `BackupManager.init()`,
+  ob das *System*-rsync (kein Homebrew-rsync gefunden) noch < Version 3 ist.
+  Falls ja, wird `rsyncBenötigtUpdate = true` gesetzt und `ContentView` zeigt
+  ein Overlay (`RsyncUpdateHinweis`) mit Erklärung und dem Terminal-Befehl
+  `brew install rsync`. Der „Verstanden"-Button blendet es nur für die
+  laufende Sitzung aus; beim nächsten Start wird erneut geprüft.
 
 ## Struktur
 

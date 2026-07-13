@@ -38,6 +38,7 @@ final class BackupManager: ObservableObject {
     @Published var logSummary: String = ""
     @Published var errorSummary: String = ""
     @Published var launchAtLogin: Bool = false
+    @Published var rsyncBenötigtUpdate: Bool = false
 
     private var process: Process?
     private var backupStartDate: Date?
@@ -46,12 +47,22 @@ final class BackupManager: ObservableObject {
 
     // Apples mitgeliefertes /usr/bin/rsync ist auf vielen Macs noch Version
     // 2.6.9 (2006, wegen GPLv3-Lizenzwechsel) und kennt kein
-    // `--info=progress2` (erst ab rsync 3.x). Einmalig per `--version` prüfen,
-    // damit wir auf altem rsync automatisch auf `-P` zurückfallen, statt dass
-    // jeder Backup-Start mit "unknown option" fehlschlägt.
-    private static let unterstuetztProgress2: Bool = {
+    // `--info=progress2` (erst ab rsync 3.x). Falls über Homebrew ein
+    // moderneres rsync installiert wurde (typische Pfade), wird das bevorzugt
+    // verwendet; sonst wird auf das System-rsync zurückgefallen.
+    private static let rsyncPfad: String = {
+        for kandidat in ["/opt/homebrew/bin/rsync", "/usr/local/bin/rsync"]
+        where FileManager.default.isExecutableFile(atPath: kandidat) {
+            return kandidat
+        }
+        return "/usr/bin/rsync"
+    }()
+
+    // Major-Version des tatsächlich verwendeten rsync (per `--version`
+    // ermittelt), oder nil, falls das nicht ausgelesen werden konnte.
+    private static func rsyncMajorVersion(pfad: String) -> Int? {
         let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/rsync")
+        proc.executableURL = URL(fileURLWithPath: pfad)
         proc.arguments = ["--version"]
         let pipe = Pipe()
         proc.standardOutput = pipe
@@ -62,13 +73,18 @@ final class BackupManager: ObservableObject {
             guard let text = String(data: data, encoding: .utf8),
                   let match = try? NSRegularExpression(pattern: #"version (\d+)\."#)
                     .firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-                  let range = Range(match.range(at: 1), in: text),
-                  let major = Int(text[range]) else { return false }
-            return major >= 3
+                  let range = Range(match.range(at: 1), in: text) else { return nil }
+            return Int(text[range])
         } catch {
-            return false
+            return nil
         }
-    }()
+    }
+
+    private static let rsyncVersionMajor: Int? = rsyncMajorVersion(pfad: rsyncPfad)
+
+    // Ob das tatsächlich verwendete rsync `--info=progress2` beherrscht
+    // (Gesamtfortschritt); sonst wird im Aufruf auf `-P` zurückgefallen.
+    private static let unterstuetztProgress2: Bool = (rsyncVersionMajor ?? 0) >= 3
 
     // Erkennt die Prozent-Angabe aus der rsync `--info=progress2`-Fortschrittszeile
     // (z. B. "1.234.567  45%  12,34MB/s    0:00:03 (xfr#5, to-chk=10/20)") für
@@ -114,6 +130,11 @@ final class BackupManager: ObservableObject {
         // Aktuellen Login-Item-Status auslesen (macOS 13+).
         if #available(macOS 13.0, *) {
             launchAtLogin = (SMAppService.mainApp.status == .enabled)
+        }
+        // Bei jedem Start prüfen, ob noch das veraltete System-rsync (2.6.9)
+        // zum Einsatz kommt — dann Hinweis-Overlay mit Update-Befehl zeigen.
+        if Self.rsyncPfad == "/usr/bin/rsync", (Self.rsyncVersionMajor ?? 0) < 3 {
+            rsyncBenötigtUpdate = true
         }
     }
 
@@ -255,7 +276,7 @@ final class BackupManager: ObservableObject {
         args += [src, destination]
 
         let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/rsync")
+        proc.executableURL = URL(fileURLWithPath: Self.rsyncPfad)
         proc.arguments = args
 
         // Getrennte Pipes: stdout = Fortschritt, stderr = Fehler/Warnungen.
@@ -579,6 +600,56 @@ private struct WindowAccessor: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
+// Hinweis-Overlay, wenn beim Start noch das veraltete System-rsync (2.6.9,
+// ohne --info=progress2) erkannt wurde. Zeigt den nötigen Terminal-Befehl
+// zur Installation eines aktuellen rsync über Homebrew.
+private struct RsyncUpdateHinweis: View {
+    @ObservedObject var manager: BackupManager
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.55)
+                .ignoresSafeArea()
+                .onTapGesture { manager.rsyncBenötigtUpdate = false }
+
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Veraltetes rsync erkannt", systemImage: "exclamationmark.triangle.fill")
+                    .font(.headline)
+                    .foregroundColor(.yellow)
+
+                Text("Auf diesem Mac ist noch rsync 2.6.9 installiert (aus dem Jahr 2006, Apples letzte Version vor dem Lizenzwechsel auf GPLv3). Diese Version unterstützt keinen Gesamtfortschritt und wird nicht mehr weiterentwickelt.")
+                    .font(.system(size: 12))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text("Installation einer aktuellen Version über Homebrew (im Terminal):")
+                    .font(.system(size: 12))
+
+                Text("brew install rsync")
+                    .font(.system(size: 12, design: .monospaced))
+                    .textSelection(.enabled)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+
+                Text("Falls Homebrew noch nicht installiert ist, zuerst auf brew.sh den Installationsbefehl kopieren und im Terminal ausführen.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button("Verstanden") {
+                    manager.rsyncBenötigtUpdate = false
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+            }
+            .padding(20)
+            .frame(maxWidth: 360)
+            .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 16))
+            .shadow(radius: 20)
+        }
+    }
+}
+
 // MARK: - UI
 struct ContentView: View {
     @ObservedObject var manager: BackupManager
@@ -772,6 +843,11 @@ struct ContentView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .background(WindowAccessor())
         .preferredColorScheme(isDarkMode ? .dark : .light)
+        .overlay {
+            if manager.rsyncBenötigtUpdate {
+                RsyncUpdateHinweis(manager: manager)
+            }
+        }
     }
 }
 

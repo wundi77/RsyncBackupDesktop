@@ -237,6 +237,45 @@ Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac unbedingt prüfen:
 `--info=progress2`), und ob die Fortschrittsanzeige in beiden Fällen
 funktioniert.
 
+### Update 2026-07-13: Homebrew-rsync bevorzugen + Update-Hinweis-Overlay
+
+Rückfrage im Chat: Nutzer hat noch rsync 2.6.9 und wollte wissen, ob ein
+Umstieg auf eine modernere/zukunftssicherere Variante möglich ist. Kurz
+recherchiert:
+
+- **openrsync** (BSD-lizenziert, ersetzt Apples rsync ab **macOS Sequoia
+  15.4**) ist zwar aktiv gepflegt, unterstützt aber laut Dokumentation
+  **kein `--info=progress2`** und nur eine Teilmenge der rsync-Flags — bringt
+  also nicht den gewünschten Gesamtfortschritt. Quellen: siehe Chat-Antwort
+  (derflounder.wordpress.com, appleinsider.com, ss64.com/mac/openrsync.html).
+- Einzige Möglichkeit für echten `--info=progress2`-Support bleibt
+  **Homebrew-rsync 3.x** (`brew install rsync`).
+
+Umgesetzt (bewusst die "einfache" Variante ohne gesonderte
+openrsync-Behandlung, wie im Chat abgestimmt):
+
+- `BackupManager.rsyncPfad` sucht zuerst `/opt/homebrew/bin/rsync` und
+  `/usr/local/bin/rsync` (Apple Silicon bzw. Intel) und nutzt das erste
+  gefundene, ausführbare rsync dort; sonst Fallback auf `/usr/bin/rsync`.
+  `startBackup()` nutzt jetzt diesen ermittelten Pfad statt hart
+  `/usr/bin/rsync`.
+- `unterstuetztProgress2` prüft die Version des so ermittelten Pfads (nicht
+  mehr fest `/usr/bin/rsync`) — Homebrew-rsync 3.x bekommt also automatisch
+  `--info=progress2`.
+- **Neu: Update-Hinweis-Overlay.** Bei **jedem** App-Start prüft
+  `BackupManager.init()`, ob tatsächlich das System-rsync verwendet wird
+  (kein Homebrew-rsync gefunden) *und* dessen Version < 3 ist. Falls ja,
+  `rsyncBenötigtUpdate = true` → `ContentView` zeigt ein abgedunkeltes
+  Overlay (`RsyncUpdateHinweis`) mit Erklärung und dem Terminal-Befehl
+  `brew install rsync` (Text ist per `.textSelection(.enabled)` markierbar).
+  „Verstanden" blendet es nur für die aktuelle Sitzung aus, beim nächsten
+  Start erscheint es wieder, solange kein neueres rsync installiert ist.
+
+**Wichtig:** Ungetestet (kein `swiftc` in dieser Sitzung). Auf dem Mac
+prüfen: Overlay sollte beim Start erscheinen (aktuell hat der Nutzer 2.6.9),
+nach `brew install rsync` und Neustart der App sollte es verschwinden und
+der Fortschrittsbalken den echten Gesamtfortschritt zeigen.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

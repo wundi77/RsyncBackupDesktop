@@ -102,6 +102,17 @@ fragt macOS einmalig nach der Erlaubnis.
 
 Im Fenster gibt es den Schalter **„Beim Login automatisch starten"**. Aktiviere ihn einmal – die App registriert sich dann selbst als Anmeldeobjekt und öffnet sich bei jedem Neustart automatisch mit ihrem Fenster. (Benötigt macOS 13 oder neuer.)
 
+## Veraltetes rsync
+
+Viele Macs haben noch die uralte Systemversion **rsync 2.6.9** (aus 2006)
+installiert. Damit funktioniert die App, aber der Fortschrittsbalken zeigt
+dann nur den Fortschritt der aktuell übertragenen Einzeldatei statt des
+gesamten Backups. Erscheint beim Start ein Hinweis-Fenster dazu, kannst du
+mit dem dort angegebenen Terminal-Befehl (`brew install rsync`, benötigt
+[Homebrew](https://brew.sh)) auf eine aktuelle Version aktualisieren — die
+App erkennt das automatisch beim nächsten Start und zeigt dann den echten
+Gesamtfortschritt an.
+
 ## Hinweise
 
 - Der Quellpfad wird automatisch mit einem `/` am Ende versehen, damit – wie bei rsync üblich – der **Inhalt** der Quelle in das Ziel abgeglichen wird (nicht der Quellordner selbst hinein).
