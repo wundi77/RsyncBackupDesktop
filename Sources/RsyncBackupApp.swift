@@ -662,6 +662,14 @@ struct ContentView: View {
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
     @State private var zeigeLeereQuelleWarnung = false
 
+    // Textfarbe für die Profil-Auswahl (Picker): im Dark Mode hellgrau, im
+    // Light Mode ein etwas dunkleres Grau statt komplett Schwarz — beides
+    // bewusst kein reines Weiß/Schwarz, damit es sich vom Kartenhintergrund
+    // abhebt, aber nicht zu hart wirkt.
+    private var pickerTextFarbe: Color {
+        isDarkMode ? Color(white: 0.85) : Color(white: 0.3)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
@@ -690,11 +698,14 @@ struct ContentView: View {
                     )) {
                         ForEach(manager.profiles) { p in
                             Text(p.name.isEmpty ? "(ohne Namen)" : p.name)
-                                .foregroundColor(Color(white: 0.85))
+                                .foregroundColor(pickerTextFarbe)
                                 .tag(p.id)
                         }
                     }
                     .labelsHidden()
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
 
                     Button { manager.addProfile() } label: {
                         Image(systemName: "plus")

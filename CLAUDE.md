@@ -171,9 +171,13 @@ rsync-Flags.)
   SwiftUI-Hintergrundfarbe (`Color(nsColor: .windowBackgroundColor)`) nutzt
   `.opacity(...)` mit demselben Wert (beide Ebenen müssen die Transparenz
   tragen, sonst verdeckt die eine die andere komplett).
-- Picker-Einträge (Profilauswahl) haben eine explizite helle Grau-Textfarbe
-  (`Color(white: 0.85)`), da das native Dropdown-Menü im Dark Mode sonst
-  schwer lesbaren dunklen Text zeigen kann.
+- Picker-Text (Profilauswahl) über `ContentView.pickerTextFarbe`
+  modusabhängig: Dark Mode `Color(white: 0.85)` (hellgrau), Light Mode
+  `Color(white: 0.3)` (dunkleres Grau, bewusst kein reines Schwarz) — sonst
+  ist die native Anzeige (geschlossener Picker *und* Dropdown-Menü) im
+  jeweils anderen Modus kaum lesbar. Der Picker selbst hat außerdem einen
+  eigenen Hintergrund (`Color(nsColor: .controlBackgroundColor)`), damit er
+  sich von der `.quaternary`-Kartenfläche darunter abhebt.
 - Sektionen (Profil, Pfade, Protokoll/Fehler, Einstellungen) in abgerundeten
   Hintergrundkarten (`.quaternary`, `RoundedRectangle(cornerRadius: 8)`).
 - Farbiger `StatusPunkt` vor der Statuszeile.

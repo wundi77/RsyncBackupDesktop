@@ -296,6 +296,25 @@ Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob 90 %
 optisch gut wirkt (leicht durchscheinend, aber Inhalt weiterhin gut lesbar)
 oder ob der Wert noch feinjustiert werden sollte.
 
+### Update 2026-07-13: Picker-Textfarbe auch im Light Mode lesbar
+
+Die zuvor fest auf `Color(white: 0.85)` (hellgrau) gesetzte Textfarbe des
+Profil-Pickers war im Light Mode kaum zu erkennen (helles Grau auf hellem
+Kartenhintergrund) — dieselbe Farbe wurde unverändert für den geschlossenen
+Picker *und* das Dropdown-Menü verwendet.
+
+- Neue berechnete Eigenschaft `ContentView.pickerTextFarbe`: Dark Mode
+  weiterhin `Color(white: 0.85)`, Light Mode jetzt `Color(white: 0.3)`
+  (dunkleres Grau, bewusst kein reines Schwarz).
+- Der Picker hat zusätzlich einen eigenen Hintergrund
+  (`Color(nsColor: .controlBackgroundColor)`, `RoundedRectangle(cornerRadius: 6)`),
+  damit er sich als eigenständiges Element von der `.quaternary`-Kartenfläche
+  darunter abhebt statt darin zu verschwinden.
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac in beiden Modi
+prüfen, ob Text und Picker-Hintergrund jetzt gut erkennbar sind, ohne zu
+hart (reines Schwarz/Weiß) zu wirken.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
