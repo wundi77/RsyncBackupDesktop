@@ -170,9 +170,9 @@ rsync-Flags.)
 - **Leichte Fenster-Transparenz**: `ContentView.windowHintergrundDeckkraft`
   (`0.9`) legt die Deckkraft an einer Stelle fest — `WindowAccessor` setzt
   `window.isOpaque = false` und `backgroundColor` mit dieser Alpha, die
-  SwiftUI-Hintergrundfarbe (`Color(nsColor: .windowBackgroundColor)`) nutzt
-  `.opacity(...)` mit demselben Wert (beide Ebenen müssen die Transparenz
-  tragen, sonst verdeckt die eine die andere komplett).
+  SwiftUI-Hintergrundfarbe (`fensterHintergrund`) nutzt `.opacity(...)` mit
+  demselben Wert (beide Ebenen müssen die Transparenz tragen, sonst verdeckt
+  die eine die andere komplett).
 - **Profilauswahl ist ein `Menu`, kein `Picker`**: Der native `Picker`-Aufklapp-
   Pfeil war in beiden Modi kaum sichtbar (zu ähnliche Farbe zum Hintergrund)
   und ließ sich über SwiftUI nicht gezielt einfärben. Stattdessen zeigt ein
@@ -181,12 +181,32 @@ rsync-Flags.)
   `ContentView.pickerTextFarbe` modusabhängig (Dark Mode `Color(white: 0.85)`,
   Light Mode `Color(white: 0.3)`, bewusst kein reines Schwarz/Weiß); Pfeilfarbe
   über `ContentView.pfeilFarbe` bewusst fix `Color(white: 0.5)` (Mittelgrau) in
-  beiden Modi. Eigener Hintergrund (`Color(nsColor: .controlBackgroundColor)`),
-  damit sich das Element von der `.quaternary`-Kartenfläche darunter abhebt.
-- Sektionen (Profil, Pfade, Protokoll/Fehler, Einstellungen) in abgerundeten
-  Hintergrundkarten (`.quaternary`, `RoundedRectangle(cornerRadius: 8)`).
+  beiden Modi.
+- **Karten-Redesign (2026-07-15)**: Statt einer gemeinsamen `.quaternary`-
+  Hintergrundfläche pro Abschnitt hat jetzt jedes funktionale Element seine
+  eigene, dünn umrandete Karte: Profil-Menu, Profilname-Feld, Quelle, Ziel,
+  Protokoll und Fehler jeweils separat, mit `RoundedRectangle` (Radius 10–14)
+  + `strokeBorder`. Zwei neue berechnete Eigenschaften auf `ContentView`
+  liefern die Farben modusabhängig: `kartenFuellung` (Light: Weiß, Dark:
+  `Color(red: 0.12, green: 0.12, blue: 0.13)`) und `kartenRahmen` (Light:
+  `Color(white: 0.87)`, Dark: `Color(white: 0.24)`). Der Fensterhintergrund
+  selbst ist ebenfalls angepasst (`fensterHintergrund` /
+  `ContentView.fensterHintergrundNSColor(isDarkMode:)`, dezentes Warmgrau im
+  Light Mode, Beinahe-Schwarz im Dark Mode statt des System-Standards) — nötig
+  in beiden Repräsentationen (SwiftUI-Hintergrund *und* `NSWindow.backgroundColor`
+  in `WindowAccessor`, das dafür jetzt einen `isDarkMode`-Parameter bekommt
+  und in `updateNSView` beim Umschalten mitzieht statt nur einmalig in
+  `makeNSView`). Die Einstellungen (Autostart, Mitteilung) bleiben bewusst
+  ohne Kartenrahmen, frei stehend auf der Fensterfläche.
+- **Neue Button-Stile** (eigene `ButtonStyle`-Typen statt Standard-Stilen):
+  `PillButtonStyle` (gefüllte Kapsel, für „Wählen…"), `StartButtonStyle`
+  (vollbreiter, stark abgerundeter Start-Button, dimmt bei `isEnabled == false`
+  über `@Environment(\.isEnabled)`), `IconButtonStyle` (quadratischer,
+  umrandeter Button für „+"/Papierkorb neben der Profilauswahl).
+- **Testlauf-Toggle als Checkbox**: `.toggleStyle(.checkbox)` statt des
+  Standard-Schalters, passend zum Referenz-Layout; Autostart/Mitteilung
+  bleiben normale Schalter (Switch-Stil).
 - Farbiger `StatusPunkt` vor der Statuszeile.
-- Start-Button vollbreit, `.borderedProminent` + `.large`.
 - Fenster: `minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560`,
   frei skalierbar (kein fixes `.frame(width:)` wie in der Menüleisten-Variante).
 

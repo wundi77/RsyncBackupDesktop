@@ -343,6 +343,47 @@ Start ohne blinkenden Cursor erscheinen und erst nach Klick hineinfokussieren.
 Falls der Fokus doch noch kurz aufblitzt, müsste die Verzögerung in
 `WindowAccessor` (aktuell 0,05 s) ggf. erhöht werden.
 
+### Update 2026-07-15: Karten-Redesign nach Screenshot-Vorlage
+
+Nutzer hat einen Screenshot mit einem neuen Layout-Vorschlag (Light + Dark)
+geschickt: einzelne umrandete Karten statt gemeinsamer `.quaternary`-Flächen,
+größere abgerundete Buttons, Profil-Menu/-Name/Quelle/Ziel/Protokoll/Fehler
+jeweils als eigene Box. Rückfrage zur Akzentfarbe (Screenshot zeigt Blau,
+bisher bewusst Grün gewählt) — Nutzer hat sich für **Grün beibehalten**
+entschieden, nur das Layout wurde aus dem Screenshot übernommen.
+
+- **Neue Karten-Optik**: Jedes Element (Profil-Menu, Profilname-Feld, Quelle,
+  Ziel, Protokoll, Fehler) ist jetzt eine eigenständige Karte mit dünnem
+  Rahmen (`RoundedRectangle` + `strokeBorder`, Radius 10–14) statt der
+  bisherigen gemeinsamen `.quaternary`-Hintergrundfläche pro Abschnitt.
+  Farben kommen aus zwei neuen `ContentView`-Eigenschaften: `kartenFuellung`
+  (Light: Weiß, Dark: dunkles Grau `0.12/0.12/0.13`) und `kartenRahmen`
+  (Light: `Color(white: 0.87)`, Dark: `Color(white: 0.24)`).
+- **Neuer Fensterhintergrund**: `fensterHintergrund` /
+  `ContentView.fensterHintergrundNSColor(isDarkMode:)` liefert ein dezentes
+  Warmgrau (Light) bzw. Beinahe-Schwarz (Dark) statt des bisherigen
+  `.windowBackgroundColor`. `WindowAccessor` bekommt dafür einen
+  `isDarkMode`-Parameter und setzt die Fensterfarbe jetzt auch in
+  `updateNSView` (nicht mehr nur einmalig in `makeNSView`), damit der native
+  Fensterhintergrund beim Dark/Light-Umschalten mitzieht.
+- **`PfadZeile`** (Quelle/Ziel) ist jetzt selbst eine Karte mit farbigem
+  Icon-Quadrat, Großbuchstaben-Label (`QUELLE`/`ZIEL`), größerem Pfadtext, X-
+  Button als umrandeter Kreis und „Wählen…" als gefüllter Pill-Button.
+- **Neue Button-Stile**: `PillButtonStyle` (Kapsel, „Wählen…"),
+  `StartButtonStyle` (vollbreiter Start-Button, abgedimmt wenn deaktiviert),
+  `IconButtonStyle` (quadratisch umrandet, für „+"/Papierkorb).
+- **Testlauf-Toggle** nutzt jetzt `.toggleStyle(.checkbox)` (Kästchen statt
+  Schalter), passend zur Vorlage; Autostart/Mitteilung bleiben normale
+  Schalter, jetzt ohne umgebende Karte (frei stehend wie im Screenshot).
+- Protokoll/Fehler sind zwei getrennte Karten statt einer gemeinsamen Box mit
+  Divider dazwischen.
+
+Rein optischer Umbau — keine Funktionalität verändert (Backup-Logik,
+rsync-Aufruf, Profile, Drag & Drop, Fortschrittsbalken, Update-Hinweis-
+Overlay etc. unverändert). Ungetestet (kein `swiftc` in dieser Sitzung) —
+auf dem Mac in beiden Modi prüfen, ob Kartenränder/-abstände gut aussehen
+und der Dark/Light-Wechsel den Fensterhintergrund sauber mitzieht.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

@@ -496,51 +496,61 @@ final class BackupManager: ObservableObject {
 
 // MARK: - Hilfs-Views
 
-// Zeigt eine Pfadzeile mit Ordner-Icon, editierbarem Textfeld und Wählen-Button.
+// Zeigt eine Pfadzeile mit Ordner-Icon, editierbarem Textfeld und Wählen-Button,
+// als eigenständige umrandete Karte (Farbton kommt von außen, siehe ContentView).
 // Pfad kann direkt getippt, eingefügt (⌘V) oder per Wählen-Button gesetzt werden.
 private struct PfadZeile: View {
     let label: String
     @Binding var pfad: String
     let aktion: () -> Void
+    let fuellung: Color
+    let rahmen: Color
 
     @State private var wirdÜbersogen = false
 
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "folder")
+        HStack(spacing: 10) {
+            Image(systemName: "folder.fill")
                 .foregroundColor(.secondary)
-                .font(.system(size: 12))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(label).font(.caption).foregroundColor(.secondary)
+                .font(.system(size: 13))
+                .frame(width: 32, height: 32)
+                .background(rahmen.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label.uppercased())
+                    .font(.system(size: 10, weight: .semibold))
+                    .tracking(0.6)
+                    .foregroundColor(.secondary)
                 TextField("— Pfad eingeben, einfügen oder Ordner hierher ziehen —", text: $pfad)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .textFieldStyle(.plain)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Spacer()
+            Spacer(minLength: 4)
             if !pfad.isEmpty {
                 Button {
                     pfad = ""
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
+                    Image(systemName: "xmark")
+                        .font(.system(size: 9, weight: .semibold))
                         .foregroundColor(.secondary)
-                        .font(.system(size: 11))
+                        .frame(width: 20, height: 20)
+                        .background(rahmen.opacity(0.6), in: Circle())
                 }
                 .buttonStyle(.plain)
                 .help("Pfad löschen")
             }
             Button("Wählen…", action: aktion)
-                .font(.system(size: 11))
+                .buttonStyle(PillButtonStyle(farbe: .backupAccent))
         }
-        .padding(4)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(wirdÜbersogen ? Color.backupAccent.opacity(0.15) : Color.clear)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(wirdÜbersogen ? Color.backupAccent.opacity(0.15) : fuellung)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .strokeBorder(wirdÜbersogen ? Color.backupAccent : Color.clear, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(wirdÜbersogen ? Color.backupAccent : rahmen, lineWidth: wirdÜbersogen ? 1.5 : 1)
         )
         .animation(.easeInOut(duration: 0.15), value: wirdÜbersogen)
         .onDrop(of: [.fileURL], isTargeted: $wirdÜbersogen) { providers in
@@ -556,6 +566,51 @@ private struct PfadZeile: View {
             }
             return true
         }
+    }
+}
+
+// MARK: - Button-Stile
+// Gefüllter, stark abgerundeter Pill-Button (z. B. "Wählen…").
+private struct PillButtonStyle: ButtonStyle {
+    var farbe: Color
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(farbe.opacity(configuration.isPressed ? 0.8 : 1), in: Capsule())
+    }
+}
+
+// Vollbreiter, kräftiger Start-Button.
+private struct StartButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 15, weight: .bold))
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                Color.backupAccent.opacity(configuration.isPressed ? 0.85 : (isEnabled ? 1 : 0.4)),
+                in: RoundedRectangle(cornerRadius: 14)
+            )
+    }
+}
+
+// Quadratischer, umrandeter Icon-Button (z. B. "+" / Papierkorb neben der Profilauswahl).
+private struct IconButtonStyle: ButtonStyle {
+    var fuellung: Color
+    var rahmen: Color
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.primary)
+            .frame(width: 40, height: 40)
+            .background(fuellung, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(rahmen, lineWidth: 1))
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
@@ -586,16 +641,22 @@ private struct StatusPunkt: View {
 // Titelleiste einfach frei auf dieser Fläche statt in einer sichtbaren
 // Menüleiste.
 private struct WindowAccessor: NSViewRepresentable {
+    var isDarkMode: Bool
+
+    private func fensterEinrichten(_ window: NSWindow) {
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.isOpaque = false
+        window.backgroundColor = ContentView.fensterHintergrundNSColor(isDarkMode: isDarkMode)
+            .withAlphaComponent(ContentView.windowHintergrundDeckkraft)
+    }
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         DispatchQueue.main.async {
             guard let window = view.window else { return }
-            window.titlebarAppearsTransparent = true
-            window.titleVisibility = .hidden
-            window.isMovableByWindowBackground = true
-            window.isOpaque = false
-            window.backgroundColor = NSColor.windowBackgroundColor
-                .withAlphaComponent(ContentView.windowHintergrundDeckkraft)
+            fensterEinrichten(window)
             // Verhindert, dass macOS automatisch das erste Textfeld (den
             // Profilnamen) fokussiert und dort schon den blinkenden Cursor
             // zeigt, bevor man tatsächlich hineingeklickt hat.
@@ -607,7 +668,12 @@ private struct WindowAccessor: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    // Wird u. a. beim Umschalten von Dark-/Light-Mode erneut aufgerufen, damit
+    // der native Fensterhintergrund farblich mit dem SwiftUI-Inhalt mitzieht.
+    func updateNSView(_ nsView: NSView, context: Context) {
+        guard let window = nsView.window else { return }
+        fensterEinrichten(window)
+    }
 }
 
 // Hinweis-Overlay, wenn beim Start noch das veraltete System-rsync (2.6.9,
@@ -669,7 +735,7 @@ struct ContentView: View {
     @AppStorage("isDarkMode") private var isDarkMode: Bool = true
     @State private var zeigeLeereQuelleWarnung = false
 
-    // Textfarbe für die Profil-Auswahl (Picker): im Dark Mode hellgrau, im
+    // Textfarbe für die Profil-Auswahl (Menu): im Dark Mode hellgrau, im
     // Light Mode ein etwas dunkleres Grau statt komplett Schwarz — beides
     // bewusst kein reines Weiß/Schwarz, damit es sich vom Kartenhintergrund
     // abhebt, aber nicht zu hart wirkt.
@@ -684,8 +750,32 @@ struct ContentView: View {
         Color(white: 0.5)
     }
 
+    // Fensterhintergrund: dezentes Warmgrau (Light) bzw. Beinahe-Schwarz
+    // (Dark) statt des Standard-`.windowBackgroundColor` — sorgt zusammen mit
+    // den helleren/dunkleren Kartenflächen für den Kontrast aus dem Redesign.
+    static func fensterHintergrundNSColor(isDarkMode: Bool) -> NSColor {
+        isDarkMode
+            ? NSColor(red: 0.07, green: 0.07, blue: 0.08, alpha: 1)
+            : NSColor(red: 0.95, green: 0.95, blue: 0.93, alpha: 1)
+    }
+
+    private var fensterHintergrund: Color {
+        Color(nsColor: Self.fensterHintergrundNSColor(isDarkMode: isDarkMode))
+    }
+
+    // Kartenfläche für Profilauswahl/-name, Quelle, Ziel, Protokoll und
+    // Fehler: im Light Mode reines Weiß, im Dark Mode ein helleres Grau als
+    // der Fensterhintergrund, dazu jeweils ein dünner Rahmen (kartenRahmen).
+    private var kartenFuellung: Color {
+        isDarkMode ? Color(red: 0.12, green: 0.12, blue: 0.13) : Color.white
+    }
+
+    private var kartenRahmen: Color {
+        isDarkMode ? Color(white: 0.24) : Color(white: 0.87)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
             // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
             // oben links kommt vom titellosen Fenster, siehe WindowAccessor).
             HStack {
@@ -696,85 +786,93 @@ struct ContentView: View {
                     Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
-                        .frame(width: 22, height: 22)
-                        .background(.quaternary, in: Circle())
+                        .frame(width: 26, height: 26)
+                        .background(kartenFuellung, in: Circle())
+                        .overlay(Circle().strokeBorder(kartenRahmen, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .help(isDarkMode ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln")
             }
 
-            // Profil-Auswahl + Verwaltung
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    // Statt Picker (dessen native Aufklapp-Pfeile sich farblich
-                    // kaum vom Hintergrund abheben) ein Menu mit selbst
-                    // gezeichnetem, klar sichtbarem Pfeil-Symbol.
-                    Menu {
-                        ForEach(manager.profiles) { p in
-                            Button(p.name.isEmpty ? "(ohne Namen)" : p.name) {
-                                manager.selectedProfileID = p.id
-                                manager.persist()
-                            }
+            // Profil-Auswahl + Verwaltung: Menu (statt Picker, dessen native
+            // Aufklapp-Pfeile sich farblich kaum vom Hintergrund abheben) mit
+            // selbst gezeichnetem Pfeil, daneben "+"/Papierkorb als eigene
+            // umrandete Icon-Buttons.
+            HStack(spacing: 8) {
+                Menu {
+                    ForEach(manager.profiles) { p in
+                        Button(p.name.isEmpty ? "(ohne Namen)" : p.name) {
+                            manager.selectedProfileID = p.id
+                            manager.persist()
                         }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(manager.name.isEmpty ? "(ohne Namen)" : manager.name)
-                                .foregroundColor(pickerTextFarbe)
-                                .lineLimit(1)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(pfeilFarbe)
-                        }
-                        .padding(.vertical, 2)
-                        .padding(.horizontal, 6)
-                        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
                     }
-                    .menuStyle(.borderlessButton)
-
-                    Button { manager.addProfile() } label: {
-                        Image(systemName: "plus")
+                } label: {
+                    HStack {
+                        Text(manager.name.isEmpty ? "(ohne Namen)" : manager.name)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(pickerTextFarbe)
+                            .lineLimit(1)
+                        Spacer()
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(pfeilFarbe)
                     }
-                    .help("Neues Profil")
-
-                    Button { manager.deleteSelectedProfile() } label: {
-                        Image(systemName: "trash")
-                    }
-                    .help("Profil löschen")
-                    .disabled(manager.profiles.count <= 1)
+                    .padding(.horizontal, 14)
+                    .frame(height: 40)
+                    .background(kartenFuellung, in: RoundedRectangle(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(kartenRahmen, lineWidth: 1))
                 }
+                .menuStyle(.borderlessButton)
 
-                TextField("Profilname", text: Binding(
-                    get: { manager.name },
-                    set: { manager.name = $0 }
-                ))
-                .textFieldStyle(.roundedBorder)
-                .font(.system(size: 11))
+                Button { manager.addProfile() } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(IconButtonStyle(fuellung: kartenFuellung, rahmen: kartenRahmen))
+                .help("Neues Profil")
+
+                Button { manager.deleteSelectedProfile() } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(IconButtonStyle(fuellung: kartenFuellung, rahmen: kartenRahmen))
+                .help("Profil löschen")
+                .disabled(manager.profiles.count <= 1)
             }
-            .padding(8)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
 
-            // Quelle + Ziel (Wählen-Button oder Pfad direkt eintippen/einfügen)
-            VStack(alignment: .leading, spacing: 6) {
+            TextField("Profilname", text: Binding(
+                get: { manager.name },
+                set: { manager.name = $0 }
+            ))
+            .textFieldStyle(.plain)
+            .font(.system(size: 13))
+            .padding(.horizontal, 14)
+            .frame(height: 40)
+            .background(kartenFuellung, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(kartenRahmen, lineWidth: 1))
+
+            // Quelle + Ziel als zwei eigenständige Karten (Wählen-Button oder
+            // Pfad direkt eintippen/einfügen/hineinziehen).
+            VStack(spacing: 10) {
                 PfadZeile(
                     label: "Quelle",
                     pfad: Binding(get: { manager.source }, set: { manager.source = $0 }),
-                    aktion: { manager.chooseFolder(title: "Quelle wählen") { manager.source = $0 } }
+                    aktion: { manager.chooseFolder(title: "Quelle wählen") { manager.source = $0 } },
+                    fuellung: kartenFuellung,
+                    rahmen: kartenRahmen
                 )
-                Divider()
                 PfadZeile(
                     label: "Ziel",
                     pfad: Binding(get: { manager.destination }, set: { manager.destination = $0 }),
-                    aktion: { manager.chooseFolder(title: "Ziel wählen") { manager.destination = $0 } }
+                    aktion: { manager.chooseFolder(title: "Ziel wählen") { manager.destination = $0 } },
+                    fuellung: kartenFuellung,
+                    rahmen: kartenRahmen
                 )
             }
-            .padding(8)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
 
             // Statuszeile mit farbigem Punkt
             HStack(spacing: 6) {
                 StatusPunkt(manager: manager)
                 Text(manager.lastLine)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -788,12 +886,14 @@ struct ContentView: View {
                     .tint(Color.backupAccent)
             }
 
-            // Testlauf (Dry-Run) – direkt über dem Start-Button
+            // Testlauf (Dry-Run) – als Checkbox wie im Referenz-Layout,
+            // direkt über dem Start-Button.
             Toggle("Testlauf (zeigt nur, was passieren würde)", isOn: Binding(
                 get: { manager.dryRun },
                 set: { manager.dryRun = $0; manager.persist() }
             ))
-            .font(.system(size: 11))
+            .toggleStyle(.checkbox)
+            .font(.system(size: 12))
             .disabled(manager.isRunning)
 
             // Start / Pause / Abbrechen
@@ -802,10 +902,14 @@ struct ContentView: View {
                     Button(role: .destructive) { manager.cancelBackup() } label: {
                         Label("Abbrechen", systemImage: "stop.fill")
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     Button { manager.togglePause() } label: {
                         Label(manager.isPaused ? "Fortsetzen" : "Pause",
                               systemImage: manager.isPaused ? "play.fill" : "pause.fill")
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     Spacer()
                 }
             } else {
@@ -818,10 +922,8 @@ struct ContentView: View {
                 } label: {
                     Label(manager.dryRun ? "Testlauf starten" : "Backup starten",
                           systemImage: "arrow.triangle.2.circlepath")
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(StartButtonStyle())
                 .disabled(manager.source.isEmpty || manager.destination.isEmpty)
                 .confirmationDialog(
                     "Quelle ist leer",
@@ -835,54 +937,52 @@ struct ContentView: View {
                 }
             }
 
-            // Protokoll + Fehler
-            VStack(spacing: 4) {
-                DisclosureGroup("Protokoll") {
-                    Text(manager.logSummary.isEmpty ? "— noch keine Zusammenfassung —" : manager.logSummary)
-                        .font(.system(size: 11))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 2)
-                }
-                .font(.system(size: 11))
-
-                Divider()
-
-                DisclosureGroup("Fehler") {
-                    Text(manager.errorSummary.isEmpty ? "— keine Fehler —" : manager.errorSummary)
-                        .font(.system(size: 11))
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 2)
-                }
-                .font(.system(size: 11))
+            // Protokoll und Fehler als zwei eigenständige Karten.
+            DisclosureGroup("Protokoll") {
+                Text(manager.logSummary.isEmpty ? "— noch keine Zusammenfassung —" : manager.logSummary)
+                    .font(.system(size: 12))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
             }
-            .padding(8)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+            .font(.system(size: 13, weight: .medium))
+            .padding(12)
+            .background(kartenFuellung, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(kartenRahmen, lineWidth: 1))
 
-            // Einstellungen
-            VStack(alignment: .leading, spacing: 6) {
+            DisclosureGroup("Fehler") {
+                Text(manager.errorSummary.isEmpty ? "— keine Fehler —" : manager.errorSummary)
+                    .font(.system(size: 12))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 4)
+            }
+            .font(.system(size: 13, weight: .medium))
+            .padding(12)
+            .background(kartenFuellung, in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(kartenRahmen, lineWidth: 1))
+
+            // Einstellungen: frei stehend ohne Kartenrahmen, wie im Referenz-Layout.
+            VStack(alignment: .leading, spacing: 10) {
                 Toggle("Beim Login automatisch starten", isOn: Binding(
                     get: { manager.launchAtLogin },
                     set: { manager.toggleLaunchAtLogin($0) }
                 ))
-                .font(.system(size: 11))
+                .font(.system(size: 12))
 
                 Toggle("Mitteilung wenn fertig", isOn: Binding(
                     get: { manager.notifyOnFinish },
                     set: { manager.toggleNotifications($0) }
                 ))
-                .font(.system(size: 11))
+                .font(.system(size: 12))
             }
-            .padding(8)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
         }
         .padding(20)
         .tint(Color.backupAccent)
         .frame(minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor).opacity(Self.windowHintergrundDeckkraft))
-        .background(WindowAccessor())
+        .background(fensterHintergrund.opacity(Self.windowHintergrundDeckkraft))
+        .background(WindowAccessor(isDarkMode: isDarkMode))
         .preferredColorScheme(isDarkMode ? .dark : .light)
         .overlay {
             if manager.rsyncBenötigtUpdate {
