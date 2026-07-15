@@ -36,7 +36,7 @@ echo "==> Kompiliere …"
 swiftc -O -parse-as-library \
   Sources/RsyncBackupApp.swift \
   -o "${MACOS_DIR}/${APP_NAME}" \
-  -framework SwiftUI -framework AppKit -framework ServiceManagement -framework UserNotifications
+  -framework SwiftUI -framework AppKit -framework UserNotifications
 
 echo "==> Schreibe Info.plist …"
 cat > "${APP_DIR}/Contents/Info.plist" <<PLIST

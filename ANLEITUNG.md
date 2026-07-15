@@ -94,13 +94,12 @@ alle Details nachlesen.
 
 ## Mitteilung wenn fertig
 
-Aktiviere **„Mitteilung wenn fertig"**, damit macOS dir eine Mitteilung zeigt,
-sobald ein Backup abgeschlossen ist oder fehlschlägt. Beim ersten Einschalten
-fragt macOS einmalig nach der Erlaubnis.
+Aktiviere den Schiebeschalter **„Mitteilung wenn fertig"**, damit macOS dir
+eine Mitteilung zeigt, sobald ein Backup abgeschlossen ist oder fehlschlägt.
+Beim ersten Einschalten fragt macOS einmalig nach der Erlaubnis.
 
-## Autostart
-
-Im Fenster gibt es den Schalter **„Beim Login automatisch starten"**. Aktiviere ihn einmal – die App registriert sich dann selbst als Anmeldeobjekt und öffnet sich bei jedem Neustart automatisch mit ihrem Fenster. (Benötigt macOS 13 oder neuer.)
+Die App hat bewusst **keinen Autostart** – sie wird immer von Hand über ihr
+Dock-Icon oder Programme-Ordner gestartet.
 
 ## Veraltetes rsync
 

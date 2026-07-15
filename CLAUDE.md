@@ -26,7 +26,7 @@ Projektnotizen für Claude Code. Knapp halten, bei Änderungen aktuell halten.
 ## Was das ist
 
 Reine **Desktop-App** für macOS mit normalem Fenster und Dock-Icon, die
-rsync-Backups ausführt. Geschrieben in **SwiftUI + AppKit + ServiceManagement**.
+rsync-Backups ausführt. Geschrieben in **SwiftUI + AppKit**.
 Kein Xcode-Projekt — Build läuft direkt über `swiftc`.
 
 **Abstammung:** Dieses Projekt ist eine Fenster-Variante von
@@ -80,9 +80,9 @@ rsync-Flags.)
   - `BackupManager` (`@MainActor`, `ObservableObject`): Logik. Verwaltet eine
     Liste von Profilen (als JSON in `UserDefaults`, Key `profiles`), startet
     rsync als `Process`, liest die Ausgabe live über einen
-    `Pipe`-`readabilityHandler`, Autostart via `SMAppService` (macOS 13+),
-    Fertig-Mitteilung via `UNUserNotificationCenter`. Migriert beim ersten
-    Start alte `source`/`destination`-Keys in ein Standardprofil.
+    `Pipe`-`readabilityHandler`, Fertig-Mitteilung via
+    `UNUserNotificationCenter`. Migriert beim ersten Start alte
+    `source`/`destination`-Keys in ein Standardprofil.
   - `PfadZeile`: Hilfs-View für Quelle/Ziel-Zeilen mit Ordner-Icon. Unterstützt
     Drag & Drop von Ordnern/Volumes (`.onDrop(of: [.fileURL], ...)`), prüft per
     `FileManager.fileExists(isDirectory:)`, ob das gedropte Element ein Ordner
@@ -90,8 +90,7 @@ rsync-Flags.)
   - `StatusPunkt`: farbiger Kreis (grün/gelb/rot/grau) für den Backup-Zustand.
   - `ContentView`: das SwiftUI-Hauptfenster (Profil wählen/anlegen/löschen/
     umbenennen, Quelle/Ziel wählen, Testlauf-Toggle, Start/Abbrechen,
-    ausklappbare Protokoll-/Fehler-Zusammenfassung, Autostart- und
-    Mitteilungs-Toggle).
+    ausklappbare Protokoll-/Fehler-Zusammenfassung, Mitteilungs-Toggle).
   - `WindowAccessor`: `NSViewRepresentable`, greift auf das `NSWindow` zu und
     macht die Titelleiste transparent/titellos (`titlebarAppearsTransparent`,
     `titleVisibility = .hidden`), aktiviert `isMovableByWindowBackground` und
@@ -136,10 +135,11 @@ rsync-Flags.)
   können direkt in die Pfadfelder gezogen werden; nur Ordner werden
   akzeptiert, Dateien werden ignoriert.
 - **Mitteilung wenn fertig**: macOS-Notification bei Abschluss/Fehler (opt-in,
-  fragt beim Einschalten nach Erlaubnis), zusätzlich Systemsound.
-- **Autostart**: „Beim Login automatisch starten" via `SMAppService`
-  (macOS 13+) — startet die App normal (mit Fenster/Dock-Icon), kein
-  Hintergrundstart wie bei der Menüleisten-Variante.
+  fragt beim Einschalten nach Erlaubnis), zusätzlich Systemsound. Schalter als
+  echter Schiebeschalter (`.toggleStyle(.switch)`).
+- **Kein Autostart**: bewusst kein „Beim Login automatisch starten" (bis
+  2026-07-15 via `SMAppService` vorhanden, dann auf Wunsch entfernt) — die
+  App wird immer von Hand gestartet.
 - **Fortschrittsbalken**: `ProgressView(value: manager.progress)` über die
   volle Breite, nur während eines Laufs sichtbar. `progress` wird per
   `BackupManager.parseProgress(from:)` (Regex `(\d{1,3})%`) aus der
@@ -196,19 +196,21 @@ rsync-Flags.)
   in beiden Repräsentationen (SwiftUI-Hintergrund *und* `NSWindow.backgroundColor`
   in `WindowAccessor`, das dafür jetzt einen `isDarkMode`-Parameter bekommt
   und in `updateNSView` beim Umschalten mitzieht statt nur einmalig in
-  `makeNSView`). Die Einstellungen (Autostart, Mitteilung) bleiben bewusst
-  ohne Kartenrahmen, frei stehend auf der Fensterfläche.
+  `makeNSView`). Die Einstellung (Mitteilung) bleibt bewusst ohne
+  Kartenrahmen, frei stehend auf der Fensterfläche (Autostart-Schalter am
+  2026-07-15 komplett entfernt, siehe „Funktionen").
 - **Neue Button-Stile** (eigene `ButtonStyle`-Typen statt Standard-Stilen):
   `PillButtonStyle` (gefüllte Kapsel, für „Wählen…"), `StartButtonStyle`
   (vollbreiter, stark abgerundeter Start-Button, dimmt bei `isEnabled == false`
   über `@Environment(\.isEnabled)`), `IconButtonStyle` (quadratischer,
   umrandeter Button für „+"/Papierkorb neben der Profilauswahl).
-- **Testlauf-Toggle als Checkbox**: `.toggleStyle(.checkbox)` statt des
-  Standard-Schalters, passend zum Referenz-Layout; Autostart/Mitteilung
-  bleiben normale Schalter (Switch-Stil).
+- **Testlauf-Toggle als Checkbox**: `.toggleStyle(.checkbox)`. **Mitteilung
+  wenn fertig** ist explizit `.toggleStyle(.switch)` (Schiebeschalter).
 - Farbiger `StatusPunkt` vor der Statuszeile.
-- Fenster: `minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560`,
+- Fenster: `minWidth: 440, idealWidth: 500, minHeight: 640, idealHeight: 680`,
   frei skalierbar (kein fixes `.frame(width:)` wie in der Menüleisten-Variante).
+  Min-Werte bewusst großzügig, damit beim Start nie ein zu kleines Fenster
+  erscheint, bei dem unten Buttons abgeschnitten sind.
 
 ## Bauen
 
@@ -218,8 +220,7 @@ interaktiven `read`-Schritt, blockiert sonst):
 ```bash
 swiftc -O -parse-as-library Sources/RsyncBackupApp.swift \
   -o /tmp/RsyncBackupDesktop_test \
-  -framework SwiftUI -framework AppKit -framework ServiceManagement \
-  -framework UserNotifications
+  -framework SwiftUI -framework AppKit -framework UserNotifications
 ```
 
 Schneller Compile-Check nach Änderungen: obigen Befehl laufen lassen, Exit 0 =
@@ -228,8 +229,7 @@ ok. Für ein echtes App-Bundle `build.command` verwenden.
 ## Konventionen
 
 - UI-Texte und Kommentare auf **Deutsch**.
-- Mindest-Zielsystem: **macOS 13** (`LSMinimumSystemVersion` in `build.command`,
-  Autostart-Code mit `#available(macOS 13.0, *)` abgesichert).
+- Mindest-Zielsystem: **macOS 13** (`LSMinimumSystemVersion` in `build.command`).
 - Bundle-ID: `com.jens.rsyncbackupdesktop`.
 
 ## Git

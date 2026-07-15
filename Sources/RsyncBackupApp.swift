@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import ServiceManagement
 import UserNotifications
 import UniformTypeIdentifiers
 
@@ -37,7 +36,6 @@ final class BackupManager: ObservableObject {
     @Published var errors: String = ""
     @Published var logSummary: String = ""
     @Published var errorSummary: String = ""
-    @Published var launchAtLogin: Bool = false
     @Published var rsyncBenötigtUpdate: Bool = false
 
     private var process: Process?
@@ -127,10 +125,6 @@ final class BackupManager: ObservableObject {
         // Standardwerte für neue Installationen: Mitteilungen an.
         UserDefaults.standard.register(defaults: ["notifyOnFinish": true])
         loadProfiles()
-        // Aktuellen Login-Item-Status auslesen (macOS 13+).
-        if #available(macOS 13.0, *) {
-            launchAtLogin = (SMAppService.mainApp.status == .enabled)
-        }
         // Bei jedem Start prüfen, ob noch das veraltete System-rsync (2.6.9)
         // zum Einsatz kommt — dann Hinweis-Overlay mit Update-Befehl zeigen.
         if Self.rsyncPfad == "/usr/bin/rsync", (Self.rsyncVersionMajor ?? 0) < 3 {
@@ -440,25 +434,6 @@ final class BackupManager: ObservableObject {
             try content.write(to: url, atomically: true, encoding: .utf8)
         } catch {
             lastLine += " (Protokolldatei konnte nicht gespeichert werden: \(error.localizedDescription))"
-        }
-    }
-
-    // MARK: - Autostart
-
-    func toggleLaunchAtLogin(_ enabled: Bool) {
-        guard #available(macOS 13.0, *) else {
-            lastLine = "Autostart benötigt macOS 13 oder neuer."
-            return
-        }
-        do {
-            if enabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-            launchAtLogin = enabled
-        } catch {
-            lastLine = "Autostart-Fehler: \(error.localizedDescription)"
         }
     }
 
@@ -963,23 +938,23 @@ struct ContentView: View {
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(kartenRahmen, lineWidth: 1))
 
             // Einstellungen: frei stehend ohne Kartenrahmen, wie im Referenz-Layout.
-            VStack(alignment: .leading, spacing: 10) {
-                Toggle("Beim Login automatisch starten", isOn: Binding(
-                    get: { manager.launchAtLogin },
-                    set: { manager.toggleLaunchAtLogin($0) }
-                ))
-                .font(.system(size: 12))
-
-                Toggle("Mitteilung wenn fertig", isOn: Binding(
-                    get: { manager.notifyOnFinish },
-                    set: { manager.toggleNotifications($0) }
-                ))
-                .font(.system(size: 12))
-            }
+            // Kein Autostart-Schalter — die App wird bewusst immer von Hand
+            // gestartet, kein Login-Item.
+            Toggle("Mitteilung wenn fertig", isOn: Binding(
+                get: { manager.notifyOnFinish },
+                set: { manager.toggleNotifications($0) }
+            ))
+            .toggleStyle(.switch)
+            .font(.system(size: 12))
         }
         .padding(20)
         .tint(Color.backupAccent)
-        .frame(minWidth: 430, idealWidth: 480, minHeight: 480, idealHeight: 560)
+        // Großzügig genug bemessen, damit beim App-Start (bzw. nach dem
+        // Entfernen des Autostart-Schalters durch macOS' Fenster-
+        // Zustandswiederherstellung) nie ein zu kleines Fenster erscheint, bei
+        // dem unten Buttons abgeschnitten sind — AppKit erzwingt mindestens
+        // diese Größe, egal welche Größe zuletzt gespeichert wurde.
+        .frame(minWidth: 440, idealWidth: 500, minHeight: 640, idealHeight: 680)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(fensterHintergrund.opacity(Self.windowHintergrundDeckkraft))
         .background(WindowAccessor(isDarkMode: isDarkMode))

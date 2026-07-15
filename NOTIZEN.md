@@ -384,6 +384,37 @@ Overlay etc. unverändert). Ungetestet (kein `swiftc` in dieser Sitzung) —
 auf dem Mac in beiden Modi prüfen, ob Kartenränder/-abstände gut aussehen
 und der Dark/Light-Wechsel den Fensterhintergrund sauber mitzieht.
 
+### Update 2026-07-15 (Nachbesserung): Fenstergröße, kein Autostart mehr, Mitteilungs-Schalter als Switch
+
+Rückmeldung nach dem ersten Test des Karten-Redesigns (Screenshot beigefügt):
+Beim erneuten Öffnen der App war das Fenster zu klein — oben ragte der
+Dark-Mode-Button über den Rand hinaus, unten fehlten die Buttons (nur durch
+manuelles Aufziehen sichtbar).
+
+- **Fenstergröße erhöht**: `minWidth`/`minHeight` von `430`/`480` auf
+  `440`/`640` angehoben (`idealWidth: 500, idealHeight: 680`). Da AppKit die
+  Fenstergröße nie unter das gesetzte Minimum lässt — auch nicht bei einer
+  von macOS gespeicherten kleineren Fenstergröße aus einer früheren Sitzung
+  —, kann das Fenster jetzt nicht mehr kleiner als nötig starten und Inhalte
+  abschneiden.
+- **Autostart komplett entfernt**: Der Schalter „Beim Login automatisch
+  starten" fällt auf Wunsch weg — die App soll immer nur von Hand gestartet
+  werden. Dazu wurde nicht nur der UI-Toggle entfernt, sondern der komplette
+  zugehörige Code: `BackupManager.launchAtLogin`,
+  `BackupManager.toggleLaunchAtLogin(_:)`, der `SMAppService`-Aufruf in
+  `init()`, der `import ServiceManagement`, sowie das
+  `-framework ServiceManagement` in `build.command`/`CLAUDE.md`.
+- **Mitteilung wenn fertig als echter Schiebeschalter**: `Toggle(...)`
+  bekommt jetzt explizit `.toggleStyle(.switch)`, damit unabhängig vom
+  Kontext sicher ein Schiebeschalter (0/1, links/rechts) statt einer
+  Checkbox angezeigt wird. Der Testlauf-Toggle bleibt bewusst eine Checkbox
+  (`.toggleStyle(.checkbox)`).
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen: App nach
+mehrfachem Neustart öffnet sich immer groß genug (keine abgeschnittenen
+Buttons mehr), kein Autostart-Schalter mehr sichtbar, „Mitteilung wenn
+fertig" zeigt einen Schiebeschalter statt einer Checkbox.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
