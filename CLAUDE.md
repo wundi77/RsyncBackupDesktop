@@ -159,9 +159,11 @@ rsync-Flags.)
   `.tint(Color.backupAccent)` auf der Wurzel-View, greift auf Buttons,
   Toggles, Picker und `ProgressView`. Auch der laufende `StatusPunkt` nutzt
   dieses Grün.
-- **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts
-  (Mond-/Sonnen-Symbol), toggelt `@AppStorage("isDarkMode")` und wird über
-  `.preferredColorScheme(...)` auf die ganze App angewendet. Default: Dark.
+- **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts, toggelt
+  `@AppStorage("isDarkMode")` und wird über `.preferredColorScheme(...)` auf
+  die ganze App angewendet. Default: Dark. Zeigt bewusst das Symbol des
+  Modus, in den man wechseln *würde* (nicht den aktuell aktiven): im Dark
+  Mode also eine Sonne, im Light Mode einen Mond.
 - **Kein Fenstertitel, keine dicke Titelleiste**: `WindowAccessor` blendet nur
   Titeltext/-leiste aus (`.windowStyle(.hiddenTitleBar)`); der reguläre
   Fensterhintergrund füllt die komplette Fläche durchgängig. Die
@@ -207,10 +209,18 @@ rsync-Flags.)
 - **Testlauf-Toggle als Checkbox**: `.toggleStyle(.checkbox)`. **Mitteilung
   wenn fertig** ist explizit `.toggleStyle(.switch)` (Schiebeschalter).
 - Farbiger `StatusPunkt` vor der Statuszeile.
-- Fenster: `minWidth: 440, idealWidth: 500, minHeight: 640, idealHeight: 680`,
+- Fenster: `minWidth: 440, idealWidth: 500, minHeight: 560, idealHeight: 590`,
   frei skalierbar (kein fixes `.frame(width:)` wie in der Menüleisten-Variante).
-  Min-Werte bewusst großzügig, damit beim Start nie ein zu kleines Fenster
-  erscheint, bei dem unten Buttons abgeschnitten sind.
+  Werte am tatsächlichen Platzbedarf des Inhalts orientiert — knapp genug,
+  damit kein unnötiger Leerraum entsteht, aber hoch genug, dass beim Start
+  nie ein zu kleines Fenster mit abgeschnittenen Buttons erscheint.
+- Äußeres Padding getrennt: `.padding(.horizontal, 20)`,
+  `.padding(.top, 12)`, `.padding(.bottom, 14)` statt eines einheitlichen
+  `.padding(20)`, damit die Dark-/Light-Mode-Zeile nah unter der
+  System-Ampel beginnt. Zusätzlich `.frame(..., alignment: .top)` auf der
+  äußersten `.frame(maxWidth: .infinity, maxHeight: .infinity)`, damit
+  überschüssige Höhe (z. B. bei manuellem Vergrößern) unten statt mittig
+  landet.
 
 ## Bauen
 

@@ -758,7 +758,11 @@ struct ContentView: View {
                 Button {
                     isDarkMode.toggle()
                 } label: {
-                    Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
+                    // Zeigt das Symbol des Modus, in den man wechseln würde
+                    // (nicht den aktuell aktiven Modus): im Dark Mode also
+                    // eine Sonne (Wechsel zu Light), im Light Mode ein Mond
+                    // (Wechsel zu Dark).
+                    Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                         .frame(width: 26, height: 26)
@@ -947,15 +951,18 @@ struct ContentView: View {
             .toggleStyle(.switch)
             .font(.system(size: 12))
         }
-        .padding(20)
+        // Oben/unten schlanker als der horizontale Rand, damit die
+        // Dark-/Light-Mode-Zeile nah unter der System-Ampel beginnt und
+        // unterhalb des Mitteilungs-Schalters nicht unnötig viel Luft bleibt.
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 14)
         .tint(Color.backupAccent)
-        // Großzügig genug bemessen, damit beim App-Start (bzw. nach dem
-        // Entfernen des Autostart-Schalters durch macOS' Fenster-
-        // Zustandswiederherstellung) nie ein zu kleines Fenster erscheint, bei
-        // dem unten Buttons abgeschnitten sind — AppKit erzwingt mindestens
-        // diese Größe, egal welche Größe zuletzt gespeichert wurde.
-        .frame(minWidth: 440, idealWidth: 500, minHeight: 640, idealHeight: 680)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Bewusst nah am tatsächlichen Platzbedarf des Inhalts bemessen, damit
+        // AppKit das Fenster weder zu klein öffnet (Buttons abgeschnitten)
+        // noch unnötig viel Leerraum um den Inhalt herum lässt.
+        .frame(minWidth: 440, idealWidth: 500, minHeight: 560, idealHeight: 590)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(fensterHintergrund.opacity(Self.windowHintergrundDeckkraft))
         .background(WindowAccessor(isDarkMode: isDarkMode))
         .preferredColorScheme(isDarkMode ? .dark : .light)

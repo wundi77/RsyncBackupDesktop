@@ -415,6 +415,32 @@ mehrfachem Neustart öffnet sich immer groß genug (keine abgeschnittenen
 Buttons mehr), kein Autostart-Schalter mehr sichtbar, „Mitteilung wenn
 fertig" zeigt einen Schiebeschalter statt einer Checkbox.
 
+### Update 2026-07-15 (weitere Nachbesserung): Leerraum reduziert, Dark/Light-Icon-Logik gedreht
+
+Screenshot der Nachbesserung zeigte: Das (bewusst großzügig bemessene)
+Fenster ließ oben zwischen den drei Ampel-Punkten und dem Dark-Mode-Button
+sowie unten unterhalb des Mitteilungs-Schalters deutlich zu viel Leerraum.
+
+- **Fenstergröße verkleinert**: `minHeight`/`idealHeight` von `640`/`680` auf
+  `560`/`590` reduziert — näher am tatsächlichen Platzbedarf des Inhalts nach
+  dem Wegfall des Autostart-Schalters.
+- **Padding aufgeteilt**: statt einheitlichem `.padding(20)` jetzt
+  `.padding(.horizontal, 20)`, `.padding(.top, 12)`, `.padding(.bottom, 14)`
+  — die Dark-/Light-Mode-Zeile beginnt dadurch näher an der System-Ampel.
+- **Vertikale Ausrichtung**: äußere `.frame(maxWidth: .infinity, maxHeight:
+  .infinity)` hat jetzt `alignment: .top`, damit übrig bleibende Höhe (z. B.
+  wenn der Nutzer das Fenster von Hand größer zieht) unten statt mittig
+  landet — vorher zentrierte SwiftUI den Inhalt vertikal, was bei einem zu
+  groß bemessenen Fenster den auffälligen Leerraum oben *und* unten erzeugte.
+- **Dark/Light-Icon-Logik gedreht**: Der Button zeigt jetzt das Symbol des
+  Modus, in den man wechseln *würde*, nicht den aktuell aktiven — im Dark
+  Mode also eine Sonne (☀️, Wechsel zu Light), im Light Mode einen Mond (🌙,
+  Wechsel zu Dark). Vorher war es umgekehrt (zeigte den aktuellen Modus).
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob der
+Leerraum oben/unten jetzt angemessen wirkt und ob die Icon-Logik (Sonne im
+Dark Mode, Mond im Light Mode) wie gewünscht ankommt.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
