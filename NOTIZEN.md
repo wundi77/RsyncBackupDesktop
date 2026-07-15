@@ -441,6 +441,30 @@ Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob der
 Leerraum oben/unten jetzt angemessen wirkt und ob die Icon-Logik (Sonne im
 Dark Mode, Mond im Light Mode) wie gewünscht ankommt.
 
+### Update 2026-07-15 (dritte Nachbesserung): Dark/Light-Button in die Profilzeile, weniger Abstand unten
+
+Screenshot mit Skizze der gewünschten Abstände: Der Leerraum oben/unten war
+weiterhin zu groß. Statt an den Padding-/Höhenwerten weiter zu drehen, kam
+die eigentliche strukturelle Lösung für den oberen Bereich: die eigene
+Kopfzeile für den Dark-/Light-Button entfällt komplett.
+
+- **Dark/Light-Button umgezogen**: sitzt jetzt rechts außen in derselben
+  `HStack` wie Profil-Menu, „+" und Papierkorb (per `Spacer(minLength: 8)`
+  dorthin geschoben), statt in einer eigenen Zeile darüber. Dadurch beginnt
+  der Inhalt direkt unter der System-Ampel, ganz ohne separaten
+  Kopfbereich.
+- **Fenster kleiner**: `minHeight`/`idealHeight` von `560`/`590` auf
+  `510`/`540` reduziert, da eine ganze Zeile (samt Zeilenabstand) wegfällt.
+- **Padding**: `.top` leicht auf `14` erhöht (Profilzeile jetzt direkt am
+  oberen Rand), `.bottom` auf `20` erhöht (angeglichen an den horizontalen
+  Rand, laut Screenshot-Skizze etwas mehr Luft unter dem
+  Mitteilungs-Schalter als vorher, aber deutlich weniger als der frühere,
+  zu große Leerraum).
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob die
+Profilzeile mit Dark-/Light-Button jetzt gut unter der System-Ampel sitzt
+und der untere Abstand zum Screenshot passt.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

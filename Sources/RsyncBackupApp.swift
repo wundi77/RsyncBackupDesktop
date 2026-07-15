@@ -751,32 +751,12 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Dezenter Dark-/Light-Mode-Schalter oben rechts (die System-Ampel
-            // oben links kommt vom titellosen Fenster, siehe WindowAccessor).
-            HStack {
-                Spacer()
-                Button {
-                    isDarkMode.toggle()
-                } label: {
-                    // Zeigt das Symbol des Modus, in den man wechseln würde
-                    // (nicht den aktuell aktiven Modus): im Dark Mode also
-                    // eine Sonne (Wechsel zu Light), im Light Mode ein Mond
-                    // (Wechsel zu Dark).
-                    Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
-                        .frame(width: 26, height: 26)
-                        .background(kartenFuellung, in: Circle())
-                        .overlay(Circle().strokeBorder(kartenRahmen, lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-                .help(isDarkMode ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln")
-            }
-
             // Profil-Auswahl + Verwaltung: Menu (statt Picker, dessen native
             // Aufklapp-Pfeile sich farblich kaum vom Hintergrund abheben) mit
             // selbst gezeichnetem Pfeil, daneben "+"/Papierkorb als eigene
-            // umrandete Icon-Buttons.
+            // umrandete Icon-Buttons. Der Dark-/Light-Mode-Schalter sitzt
+            // rechts außen in derselben Zeile, damit oberhalb — bis zur
+            // System-Ampel — kein eigener, leerer Kopfbereich mehr nötig ist.
             HStack(spacing: 8) {
                 Menu {
                     ForEach(manager.profiles) { p in
@@ -815,6 +795,25 @@ struct ContentView: View {
                 .buttonStyle(IconButtonStyle(fuellung: kartenFuellung, rahmen: kartenRahmen))
                 .help("Profil löschen")
                 .disabled(manager.profiles.count <= 1)
+
+                Spacer(minLength: 8)
+
+                Button {
+                    isDarkMode.toggle()
+                } label: {
+                    // Zeigt das Symbol des Modus, in den man wechseln würde
+                    // (nicht den aktuell aktiven Modus): im Dark Mode also
+                    // eine Sonne (Wechsel zu Light), im Light Mode ein Mond
+                    // (Wechsel zu Dark).
+                    Image(systemName: isDarkMode ? "sun.max.fill" : "moon.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .frame(width: 26, height: 26)
+                        .background(kartenFuellung, in: Circle())
+                        .overlay(Circle().strokeBorder(kartenRahmen, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .help(isDarkMode ? "Zu Light Mode wechseln" : "Zu Dark Mode wechseln")
             }
 
             TextField("Profilname", text: Binding(
@@ -951,17 +950,19 @@ struct ContentView: View {
             .toggleStyle(.switch)
             .font(.system(size: 12))
         }
-        // Oben/unten schlanker als der horizontale Rand, damit die
-        // Dark-/Light-Mode-Zeile nah unter der System-Ampel beginnt und
+        // Oben/unten schlanker als der horizontale Rand, damit die Profilzeile
+        // (inkl. Dark-/Light-Button) nah unter der System-Ampel beginnt und
         // unterhalb des Mitteilungs-Schalters nicht unnötig viel Luft bleibt.
         .padding(.horizontal, 20)
-        .padding(.top, 12)
-        .padding(.bottom, 14)
+        .padding(.top, 14)
+        .padding(.bottom, 20)
         .tint(Color.backupAccent)
         // Bewusst nah am tatsächlichen Platzbedarf des Inhalts bemessen, damit
         // AppKit das Fenster weder zu klein öffnet (Buttons abgeschnitten)
-        // noch unnötig viel Leerraum um den Inhalt herum lässt.
-        .frame(minWidth: 440, idealWidth: 500, minHeight: 560, idealHeight: 590)
+        // noch unnötig viel Leerraum um den Inhalt herum lässt. Da der
+        // Dark-/Light-Button jetzt in der Profilzeile mitläuft statt einer
+        // eigenen Kopfzeile, wird insgesamt weniger Höhe benötigt.
+        .frame(minWidth: 440, idealWidth: 500, minHeight: 510, idealHeight: 540)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(fensterHintergrund.opacity(Self.windowHintergrundDeckkraft))
         .background(WindowAccessor(isDarkMode: isDarkMode))

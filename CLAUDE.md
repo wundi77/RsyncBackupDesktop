@@ -159,7 +159,10 @@ rsync-Flags.)
   `.tint(Color.backupAccent)` auf der Wurzel-View, greift auf Buttons,
   Toggles, Picker und `ProgressView`. Auch der laufende `StatusPunkt` nutzt
   dieses Grün.
-- **Dark/Light-Umschalter**: dezenter Kreis-Button oben rechts, toggelt
+- **Dark/Light-Umschalter**: dezenter Kreis-Button, sitzt rechts außen in
+  derselben Zeile wie Profil-Menu/„+"/Papierkorb (per `Spacer()` dorthin
+  geschoben) statt in einer eigenen Kopfzeile — dadurch beginnt der Inhalt
+  direkt unter der System-Ampel, ohne separaten Leerbereich. Toggelt
   `@AppStorage("isDarkMode")` und wird über `.preferredColorScheme(...)` auf
   die ganze App angewendet. Default: Dark. Zeigt bewusst das Symbol des
   Modus, in den man wechseln *würde* (nicht den aktuell aktiven): im Dark
@@ -209,18 +212,19 @@ rsync-Flags.)
 - **Testlauf-Toggle als Checkbox**: `.toggleStyle(.checkbox)`. **Mitteilung
   wenn fertig** ist explizit `.toggleStyle(.switch)` (Schiebeschalter).
 - Farbiger `StatusPunkt` vor der Statuszeile.
-- Fenster: `minWidth: 440, idealWidth: 500, minHeight: 560, idealHeight: 590`,
+- Fenster: `minWidth: 440, idealWidth: 500, minHeight: 510, idealHeight: 540`,
   frei skalierbar (kein fixes `.frame(width:)` wie in der Menüleisten-Variante).
   Werte am tatsächlichen Platzbedarf des Inhalts orientiert — knapp genug,
   damit kein unnötiger Leerraum entsteht, aber hoch genug, dass beim Start
-  nie ein zu kleines Fenster mit abgeschnittenen Buttons erscheint.
+  nie ein zu kleines Fenster mit abgeschnittenen Buttons erscheint. Da der
+  Dark-/Light-Button jetzt in der Profilzeile mitläuft statt einer eigenen
+  Kopfzeile, ist weniger Höhe nötig als zuvor.
 - Äußeres Padding getrennt: `.padding(.horizontal, 20)`,
-  `.padding(.top, 12)`, `.padding(.bottom, 14)` statt eines einheitlichen
-  `.padding(20)`, damit die Dark-/Light-Mode-Zeile nah unter der
-  System-Ampel beginnt. Zusätzlich `.frame(..., alignment: .top)` auf der
-  äußersten `.frame(maxWidth: .infinity, maxHeight: .infinity)`, damit
-  überschüssige Höhe (z. B. bei manuellem Vergrößern) unten statt mittig
-  landet.
+  `.padding(.top, 14)`, `.padding(.bottom, 20)` statt eines einheitlichen
+  `.padding(20)`, damit die Profilzeile nah unter der System-Ampel beginnt.
+  Zusätzlich `.frame(..., alignment: .top)` auf der äußersten
+  `.frame(maxWidth: .infinity, maxHeight: .infinity)`, damit überschüssige
+  Höhe (z. B. bei manuellem Vergrößern) unten statt mittig landet.
 
 ## Bauen
 
