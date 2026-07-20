@@ -35,7 +35,7 @@ Das Backup läuft direkt in der App; der Fortschritt wird unten als Statuszeile 
 
 3. Doppelklick auf **`build.command`** in diesem Ordner.
    - Beim ersten Mal blockiert macOS evtl. die Ausführung. Dann: Rechtsklick auf `build.command` → **Öffnen** → **Öffnen** bestätigen.
-   - Das Skript erzeugt automatisch das App-Icon, kompiliert die App und legt **`RsyncBackupDesktop.app`** in diesem Ordner ab.
+   - Das Skript übernimmt automatisch das App-Icon (aus `AppIconSource/`), kompiliert die App und legt **`RsyncBackupDesktop.app`** in diesem Ordner ab.
 
 4. Verschiebe **`RsyncBackupDesktop.app`** nach `/Programme` (optional, empfohlen) und starte sie per Doppelklick.
    - Beim ersten Start ggf. wieder Rechtsklick → **Öffnen**, da die App nicht über den App Store signiert ist.

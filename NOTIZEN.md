@@ -465,6 +465,36 @@ Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen, ob die
 Profilzeile mit Dark-/Light-Button jetzt gut unter der System-Ampel sitzt
 und der untere Abstand zum Screenshot passt.
 
+### Update 2026-07-20: Festes App-Icon vom Nutzer statt generiertem Icon
+
+Nutzer hat ein fertig gestaltetes App-Icon per ZIP geliefert (Export aus
+einem Icon-Design-Tool, „Variante 3f: Graphit-Hintergrund + grüner Ordner"
+mit weißem Kreis + grünen Sync-Pfeilen) und wollte es dauerhaft in jeden
+Build übernommen haben.
+
+- Neuer Ordner **`AppIconSource/`** im Repo, versioniert:
+  - `AppIcon-1024.png` — Master (1024×1024 px), nur als Referenz.
+  - `AppIcon.iconset/` — alle Standardgrößen, Dateinamen von `-2x` auf
+    `@2x` korrigiert (Apple/`iconutil` erwartet exakt `@2x`; die Export-ZIP
+    hatte `-2x`, da „@" beim Export nicht direkt geschrieben werden konnte —
+    laut beiliegender README.txt im Original-Export).
+- **`make_icon.swift` entfernt** (komplett gelöscht, nicht mehr referenziert)
+  — das darin programmatisch gezeichnete Icon (grüner Verlauf + SF Symbol)
+  ist damit obsolet.
+- **`build.command`** geändert: statt `swift make_icon.swift` auszuführen,
+  wird jetzt `AppIconSource/AppIcon.iconset` nach `AppIcon.iconset` kopiert,
+  dann wie bisher `iconutil -c icns` aufgerufen. Der Rest des Build-Ablaufs
+  (Kompilieren, `.app`-Bundle, `Info.plist`, ad-hoc Signierung) ist
+  unverändert.
+
+Das feste Icon wird ab sofort bei **jedem** Build unverändert übernommen,
+ohne erneute Generierung — passend zum Nutzerwunsch „soll dann bitte in
+Zukunft immer für diese App beim Build … mit übernommen werden".
+
+Ungetestet (kein `iconutil`/`swiftc` in dieser Sitzung, beides nur auf
+macOS verfügbar) — auf dem Mac `build.command` einmal laufen lassen und
+prüfen, ob das neue Icon korrekt im Dock/Finder erscheint.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

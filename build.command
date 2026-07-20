@@ -26,8 +26,8 @@ echo "==> Räume alten Build auf …"
 rm -rf "${APP_DIR}" AppIcon.iconset AppIcon.icns
 mkdir -p "${MACOS_DIR}" "${RES_DIR}"
 
-echo "==> Erzeuge App-Icon …"
-swift make_icon.swift
+echo "==> Baue App-Icon aus AppIconSource/AppIcon.iconset …"
+cp -R AppIconSource/AppIcon.iconset AppIcon.iconset
 iconutil -c icns AppIcon.iconset -o AppIcon.icns
 cp AppIcon.icns "${RES_DIR}/AppIcon.icns"
 rm -rf AppIcon.iconset AppIcon.icns

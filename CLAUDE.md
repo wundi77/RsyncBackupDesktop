@@ -102,12 +102,17 @@ rsync-Flags.)
   - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` (ohne Titel-String)
     mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
     `.windowStyle(.hiddenTitleBar)`.
-- `make_icon.swift` — Swift-Skript (läuft auf dem Mac beim Build): zeichnet
-  alle Icon-Größen (16–1024 px) als PNG in `AppIcon.iconset/`, grüner
-  Verlauf (passend zu `Color.backupAccent`) + SF Symbol
-  `externaldrive.badge.timemachine` in Weiß.
-- `build.command` — Doppelklick-Build: ruft `swift make_icon.swift` +
-  `iconutil` auf, kompiliert, baut `.app`-Bundle, schreibt `Info.plist`,
+- `AppIconSource/` — **festes, vom Nutzer geliefertes App-Icon** (2026-07-20,
+  „Variante 3f: Graphit-Hintergrund + grüner Ordner"), fest im Repo versioniert:
+  - `AppIcon-1024.png` — Master-Icon (1024×1024 px), nur als Referenz/für
+    einen späteren Re-Export.
+  - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
+    `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit.
+  - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
+    grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
+    **jedem** Build unverändert übernommen, nicht mehr neu generiert.
+- `build.command` — Doppelklick-Build: kopiert `AppIconSource/AppIcon.iconset`,
+  ruft `iconutil` auf, kompiliert, baut `.app`-Bundle, schreibt `Info.plist`,
   signiert ad-hoc.
 - `ANLEITUNG.md` — Endnutzer-Anleitung (deutsch).
 - `RsyncBackupDesktop.app/` — Build-Ergebnis, **nicht versioniert** (`.gitignore`).
