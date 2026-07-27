@@ -69,9 +69,20 @@ rsync-Flags.)
 - **Update-Hinweis-Overlay**: Bei jedem App-Start prüft `BackupManager.init()`,
   ob das *System*-rsync (kein Homebrew-rsync gefunden) noch < Version 3 ist.
   Falls ja, wird `rsyncBenötigtUpdate = true` gesetzt und `ContentView` zeigt
-  ein Overlay (`RsyncUpdateHinweis`) mit Erklärung und dem Terminal-Befehl
-  `brew install rsync`. Der „Verstanden"-Button blendet es nur für die
-  laufende Sitzung aus; beim nächsten Start wird erneut geprüft.
+  ein scrollbares Overlay (`RsyncUpdateHinweis`, `maxWidth: 440, maxHeight: 560`).
+  Inhalt zweigeteilt:
+  1. **„Warum das wichtig sein kann"** — erklärt zuerst den Unterschied zur
+     aktuellen Version (kein Gesamtfortschritt, keine Fehlerbehebungen seit
+     2006, ggf. langsamer/weniger robust) und stellt klar, dass das Backup
+     auch mit der alten Version einwandfrei funktioniert — ein Update ist
+     freiwillig, keine Voraussetzung.
+  2. **Schritt-für-Schritt-Anleitung** (`AnleitungsSchritt`, nummerierte
+     Kreis-Badges): Terminal öffnen → Homebrew installieren (inkl. Erklärung
+     was Homebrew ist, Installationsbefehl von brew.sh, Hinweis auf
+     Passwortabfrage) → `brew install rsync` → App neu starten (die Prüfung
+     läuft nur einmalig beim Start, kein automatischer Refresh zur Laufzeit).
+  Der „Verstanden"-Button blendet es nur für die laufende Sitzung aus; beim
+  nächsten Start wird erneut geprüft.
 
 ## Struktur
 

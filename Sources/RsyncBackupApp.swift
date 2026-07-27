@@ -654,6 +654,31 @@ private struct WindowAccessor: NSViewRepresentable {
 // Hinweis-Overlay, wenn beim Start noch das veraltete System-rsync (2.6.9,
 // ohne --info=progress2) erkannt wurde. Zeigt den nötigen Terminal-Befehl
 // zur Installation eines aktuellen rsync über Homebrew.
+// Kleine Hilfs-View für einen nummerierten Schritt in der Installationsanleitung.
+private struct AnleitungsSchritt: View {
+    let nummer: Int
+    let titel: String
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text("\(nummer)")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.white)
+                .frame(width: 20, height: 20)
+                .background(Color.backupAccent, in: Circle())
+            VStack(alignment: .leading, spacing: 3) {
+                Text(titel)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(text)
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
 private struct RsyncUpdateHinweis: View {
     @ObservedObject var manager: BackupManager
 
@@ -663,38 +688,99 @@ private struct RsyncUpdateHinweis: View {
                 .ignoresSafeArea()
                 .onTapGesture { manager.rsyncBenötigtUpdate = false }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Veraltetes rsync erkannt", systemImage: "exclamationmark.triangle.fill")
-                    .font(.headline)
-                    .foregroundColor(.yellow)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Label("Veraltetes rsync erkannt", systemImage: "exclamationmark.triangle.fill")
+                        .font(.headline)
+                        .foregroundColor(.yellow)
 
-                Text("Auf diesem Mac ist noch rsync 2.6.9 installiert (aus dem Jahr 2006, Apples letzte Version vor dem Lizenzwechsel auf GPLv3). Diese Version unterstützt keinen Gesamtfortschritt und wird nicht mehr weiterentwickelt.")
-                    .font(.system(size: 12))
-                    .fixedSize(horizontal: false, vertical: true)
+                    // Erklärt zuerst, WARUM das relevant ist und was sich
+                    // konkret unterscheidet, damit der Nutzer selbst
+                    // entscheiden kann, ob er updaten möchte oder nicht.
+                    Text("Warum das wichtig sein kann")
+                        .font(.system(size: 13, weight: .semibold))
 
-                Text("Installation einer aktuellen Version über Homebrew (im Terminal):")
-                    .font(.system(size: 12))
+                    Text("Auf diesem Mac wird noch rsync 2.6.9 verwendet – das ist Apples letzte mitgelieferte Version aus dem Jahr 2006. Apple hat seitdem kein neueres rsync mehr eingebaut, weil ab Version 3 eine andere Lizenz (GPLv3) gilt, die Apple in Systemsoftware nicht verwenden möchte.")
+                        .font(.system(size: 12))
+                        .fixedSize(horizontal: false, vertical: true)
 
-                Text("brew install rsync")
-                    .font(.system(size: 12, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding(8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+                    Text("Unterschied zur aktuellen Version 3.x:")
+                        .font(.system(size: 12, weight: .semibold))
 
-                Text("Falls Homebrew noch nicht installiert ist, zuerst auf brew.sh den Installationsbefehl kopieren und im Terminal ausführen.")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("Gesamtfortschritt: Die alte Version kann in dieser App nur den Fortschritt der gerade übertragenen Einzeldatei anzeigen, nicht den Fortschritt über das komplette Backup.", systemImage: "chart.bar.fill")
+                        Label("Seit 2006 keine Fehlerbehebungen oder Sicherheitsupdates mehr für diese alte Version.", systemImage: "wrench.and.screwdriver.fill")
+                        Label("Teils spürbar langsamer und weniger robust bei großen Datenmengen, Sonderzeichen in Dateinamen oder unterbrochenen Übertragungen.", systemImage: "hare.fill")
+                    }
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .labelStyle(.titleAndIcon)
 
-                Button("Verstanden") {
-                    manager.rsyncBenötigtUpdate = false
+                    Text("Wichtig: Das Backup selbst funktioniert auch mit der alten Version einwandfrei – rsync -delete, Testlauf, Protokoll usw. sind davon nicht betroffen. Ein Update ist also eine freiwillige Verbesserung, keine Voraussetzung. Du kannst dieses Fenster also auch einfach schließen und alles bleibt wie bisher.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Divider()
+
+                    Text("So installierst du die aktuelle Version (freiwillig)")
+                        .font(.system(size: 13, weight: .semibold))
+
+                    AnleitungsSchritt(
+                        nummer: 1,
+                        titel: "Terminal öffnen",
+                        text: "Drücke ⌘ (Cmd) + Leertaste, tippe „Terminal“ ein und drücke Enter. Es öffnet sich ein schwarzes Fenster mit einer Eingabezeile – das ist normal."
+                    )
+
+                    AnleitungsSchritt(
+                        nummer: 2,
+                        titel: "Homebrew installieren (falls noch nicht vorhanden)",
+                        text: "Homebrew ist ein kostenloses, weit verbreitetes Installationswerkzeug für Zusatzprogramme auf dem Mac. Kopiere den Befehl von der Seite brew.sh in dein Terminal (Rechtsklick → Einfügen, oder ⌘V) und drücke Enter. Das Terminal fragt danach nach deinem Mac-Anmeldepasswort (wird beim Tippen nicht sichtbar angezeigt) und bestätigt anschließend mit Enter/RETURN, wenn danach gefragt wird."
+                    )
+
+                    Text("Homebrew installieren – Befehl:")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                    Text("/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"")
+                        .font(.system(size: 10, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+
+                    AnleitungsSchritt(
+                        nummer: 3,
+                        titel: "rsync installieren",
+                        text: "Sobald Homebrew fertig eingerichtet ist (kann einige Minuten dauern), gib im selben Terminal-Fenster folgenden Befehl ein und drücke Enter:"
+                    )
+
+                    Text("brew install rsync")
+                        .font(.system(size: 12, design: .monospaced))
+                        .textSelection(.enabled)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
+
+                    AnleitungsSchritt(
+                        nummer: 4,
+                        titel: "App neu starten",
+                        text: "Schließe diese App komplett und öffne sie erneut. Sie erkennt das neue rsync automatisch – dieser Hinweis erscheint dann nicht mehr, und der Fortschrittsbalken zeigt den echten Gesamtfortschritt über das ganze Backup."
+                    )
+
+                    Text("Falls etwas nicht klappt oder du unsicher bist: Einfach dieses Fenster schließen und die App wie gewohnt weiter benutzen – es ändert sich nichts an der bisherigen Funktion.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button("Verstanden") {
+                        manager.rsyncBenötigtUpdate = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
+                .padding(20)
             }
-            .padding(20)
-            .frame(maxWidth: 360)
+            .frame(maxWidth: 440, maxHeight: 560)
             .background(Color(nsColor: .windowBackgroundColor), in: RoundedRectangle(cornerRadius: 16))
             .shadow(radius: 20)
         }

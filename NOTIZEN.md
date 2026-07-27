@@ -495,6 +495,55 @@ Ungetestet (kein `iconutil`/`swiftc` in dieser Sitzung, beides nur auf
 macOS verfügbar) — auf dem Mac `build.command` einmal laufen lassen und
 prüfen, ob das neue Icon korrekt im Dock/Finder erscheint.
 
+### Update 2026-07-27: Ausführlichere Erklärung + Schritt-für-Schritt-Anleitung im Update-Hinweis-Overlay
+
+Rückfrage im Chat: Lässt sich die rsync-Installation automatisieren (Ja/Nein-
+Button, Homebrew im Hintergrund)? Antwort: grundsätzlich ja, aber mit
+Einschränkung — ist Homebrew schon installiert, geht `brew install rsync`
+komplett ohne Passwortabfrage im Hintergrund; ist Homebrew noch nicht
+installiert, braucht dessen Ersteinrichtung einmalig Admin-Rechte (ließe sich
+über das native macOS-Autorisierungsfenster lösen, aber nicht ganz ohne
+Nutzerinteraktion). Auf Wunsch erst mal nur die einfachere Variante 2
+umgesetzt: keine automatische Installation, sondern eine deutlich
+ausführlichere Erklärung + Anleitung im bestehenden Overlay, damit auch
+technisch weniger versierte Nutzer selbst entscheiden und den Weg gehen
+können.
+
+`RsyncUpdateHinweis` (in `Sources/RsyncBackupApp.swift`) komplett neu
+gefasst, jetzt in einem scrollbaren Container (`ScrollView`,
+`maxWidth: 440, maxHeight: 560`, vorher fixes `maxWidth: 360` ohne Scrollen):
+
+- **Neuer Abschnitt „Warum das wichtig sein kann"** vor der Anleitung:
+  erklärt den Unterschied zwischen der alten (2.6.9, Systemversion) und der
+  aktuellen Version 3.x — kein Gesamtfortschritt in der App, keine
+  Fehlerbehebungen/Sicherheitsupdates seit 2006, potenziell langsamer/weniger
+  robust bei großen Datenmengen oder Sonderzeichen. Stellt klar: das Backup
+  funktioniert auch mit der alten Version einwandfrei, ein Update ist
+  **freiwillig**, keine Voraussetzung — der Nutzer kann bewusst entscheiden,
+  ob er es durchführen möchte.
+- **Neue Schritt-für-Schritt-Anleitung** über eine neue Hilfs-View
+  `AnleitungsSchritt` (nummeriertes Kreis-Badge in Grün + Titel + Text):
+  1. Terminal öffnen (⌘+Leertaste, „Terminal" eintippen).
+  2. Homebrew installieren, falls noch nicht vorhanden — mit Erklärung, was
+     Homebrew überhaupt ist, dem Installationsbefehl von brew.sh als
+     markierbarem Code-Block, und dem Hinweis auf die Passwortabfrage im
+     Terminal (Passwort wird beim Tippen nicht sichtbar).
+  3. `brew install rsync` ausführen (Code-Block wie bisher).
+  4. App komplett neu starten, damit die neue Version erkannt wird (die
+     Prüfung läuft aktuell nur einmalig beim Start, kein Live-Refresh).
+  Am Ende zusätzlich ein beruhigender Hinweis, dass man das Fenster auch
+  einfach schließen kann, falls etwas nicht klappt oder man unsicher ist —
+  ohne Nachteile für die bisherige Funktion.
+- Beim Schreiben ist ein falsch gesetztes gerades Anführungszeichen
+  aufgefallen (`„Terminal"` statt `„Terminal“`), das das Swift-String-Literal
+  vorzeitig beendet und einen Compile-Fehler verursacht hätte — direkt auf
+  ein typografisch korrektes schließendes Anführungszeichen korrigiert.
+
+Ungetestet (kein `swiftc` in dieser Sitzung) — auf dem Mac prüfen: Overlay
+lässt sich scrollen, Text ist vollständig lesbar, keine abgeschnittenen
+Buttons, und die Anleitung funktioniert tatsächlich Schritt für Schritt wie
+beschrieben.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
