@@ -601,6 +601,39 @@ Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
 `build.command` laufen lassen und prüfen, ob das Icon (inkl. der neuen
 hellen Hintergrundfläche) korrekt erscheint.
 
+### Update 2026-08-03 (weitere Nachbesserung): Icon-Composer-Bundle (`.icon`) als neue Quelle
+
+Nutzer hat diesmal ein **Icon-Composer-Bundle** (`rsync.icon/`, ZIP mit
+`icon.json` + `Assets/rsync.png`) angehängt — das ist Apples neues Format
+für das „Liquid Glass"-Icon-System (Icon Composer, Teil von Xcode ab
+Version 26): eine JSON-Beschreibung mit Ebenen, automatischem
+Hintergrund-Verlauf (hier ein Blauton — vermutlich unverändertes
+Standard-Template, da die App bewusst Grün als Akzentfarbe verwendet),
+Glas-/Schatten-/Transluzenz-Effekten, plus die eigentliche Bild-Ebene als
+PNG.
+
+- **Wichtige Einschränkung**: Dieses Projekt hat kein Xcode-Projekt (nur
+  `swiftc` + `iconutil`), und `iconutil` kann `.icon`-Bundles nicht
+  verarbeiten — das Format wird nur von Xcodes neuerem Build-Werkzeug
+  gerendert (inkl. der Glas-/Verlaufseffekte, die dynamisch je nach
+  Systemversion/Hell-Dunkel-Modus berechnet werden). Eine 1:1-Übernahme
+  dieser Effekte ist mit der aktuellen Build-Kette also nicht möglich.
+- Stattdessen wurde die flache Rasterebene (`Assets/rsync.png`, 1024×1024)
+  genau wie beim letzten Update als neuer Master übernommen: komplettes
+  Iconset per Lanczos-Resampling neu erzeugt, `AppIconSource/AppIcon-1024.png`
+  ersetzt.
+- Das komplette Original-Bundle wurde zusätzlich unter
+  `AppIconSource/rsync.icon/` abgelegt — rein als Referenz für den Fall,
+  dass das Projekt später mal auf ein echtes Xcode-Projekt umgestellt wird
+  (dann ließe sich das Bundle direkt in einen Asset-Katalog übernehmen und
+  die vollen Liquid-Glass-Effekte nutzen). Für den aktuellen
+  `build.command`-Ablauf spielt es keine Rolle.
+- `build.command` unverändert (baut weiterhin aus
+  `AppIconSource/AppIcon.iconset`).
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
+`build.command` laufen lassen und prüfen, ob das Icon korrekt erscheint.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

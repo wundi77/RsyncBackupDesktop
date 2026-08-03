@@ -121,11 +121,17 @@ rsync-Flags.)
     einen späteren Re-Export.
   - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
     `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit, per
-    Lanczos-Resampling aus dem vom Nutzer gelieferten 1024px-PNG-Master
-    erzeugt (Quelle: `icon_rsync.png`, vom Nutzer direkt ins GitHub-Repo
-    hochgeladen statt als Chat-Anhang — nach Übernahme aus dem Repo-Root
-    entfernt, da `AppIconSource/AppIcon-1024.png` jetzt die kanonische Kopie
-    ist).
+    Lanczos-Resampling aus dem 1024px-PNG-Master erzeugt.
+  - `rsync.icon/` — das vom Nutzer als **Icon-Composer-Bundle** (`.icon`,
+    Apples neues „Liquid Glass"-Iconformat ab Xcode 26) gelieferte
+    Original: `icon.json` (Ebenen/Verlauf/Glas-/Schatten-Konfiguration) +
+    `Assets/rsync.png` (die flache Rasterebene). Nur zur Referenz für eine
+    mögliche spätere Xcode-Migration aufgehoben — **wird beim Build nicht
+    verwendet**, da dieses Projekt kein Xcode-Projekt ist und `iconutil`
+    dieses Bundle-Format nicht versteht. Stattdessen liefert
+    `Assets/rsync.png` den flachen 1024px-Master für `AppIcon-1024.png`/
+    `AppIcon.iconset/` (die dort beschriebenen Glass-/Verlaufs-Effekte
+    gehen dabei verloren, das Bildmotiv bleibt identisch).
   - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
     grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
     **jedem** Build unverändert übernommen, nicht mehr neu generiert.
