@@ -115,16 +115,17 @@ rsync-Flags.)
     `.windowStyle(.hiddenTitleBar)`.
 - `AppIconSource/` — **festes, vom Nutzer geliefertes App-Icon** (zuletzt
   aktualisiert 2026-08-03: dunkler Ordner mit heller Karte und goldenen
-  Sync-Pfeilen, transparenter Hintergrund statt Squircle-Fläche), fest im
-  Repo versioniert:
+  Sync-Pfeilen, mit heller Squircle-Hintergrundfläche), fest im Repo
+  versioniert:
   - `AppIcon-1024.png` — Master-Icon (1024×1024 px), nur als Referenz/für
     einen späteren Re-Export.
   - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
-    `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit. Die
-    Größen 128–1024 stammen verlustfrei aus der vom Nutzer gelieferten
-    `.icns`-Datei (dort eingebettete PNGs extrahiert); die kleineren Größen
-    16/32/64 gab es darin nicht und wurden aus dem 1024px-Master
-    hochwertig herunterskaliert (Lanczos).
+    `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit, per
+    Lanczos-Resampling aus dem vom Nutzer gelieferten 1024px-PNG-Master
+    erzeugt (Quelle: `icon_rsync.png`, vom Nutzer direkt ins GitHub-Repo
+    hochgeladen statt als Chat-Anhang — nach Übernahme aus dem Repo-Root
+    entfernt, da `AppIconSource/AppIcon-1024.png` jetzt die kanonische Kopie
+    ist).
   - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
     grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
     **jedem** Build unverändert übernommen, nicht mehr neu generiert.

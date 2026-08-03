@@ -571,6 +571,36 @@ Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
 scharf im Dock/Finder erscheint, insbesondere die kleinen, hochskalierten
 Größen (16/32 px).
 
+### Update 2026-08-03 (Nachbesserung): App-Icon-Master direkt als PNG statt aus .icns extrahiert
+
+Kurz nach der letzten Icon-Umstellung: Nutzer wollte statt der `.icns`-Datei
+lieber direkt ein PNG als Quelle verwenden. Da ein im Chat eingefügtes Bild
+ohne Datei-Anhang für mich nicht direkt zugreifbar ist (nur als Vorschau
+sichtbar, kein Pfad), hat der Nutzer die Datei stattdessen direkt ins
+GitHub-Repo hochgeladen (`icon_rsync.png`, 1024×1024 px, mit heller
+Squircle-Hintergrundfläche statt des vorherigen transparenten Hintergrunds).
+
+- Nach `git fetch`/`git pull --ff-only` stand die Datei lokal zur Verfügung.
+- Daraus wurde erneut das komplette Iconset erzeugt (`AppIconSource/AppIcon.iconset/`,
+  alle Größen per Lanczos-Resampling direkt aus dem 1024px-Master — diesmal
+  ohne Notwendigkeit, einzelne Größen aus einem Container zu extrahieren, da
+  bereits ein einzelnes PNG in voller Auflösung vorlag).
+- `AppIconSource/AppIcon-1024.png` mit dem neuen Master ersetzt.
+- Die hochgeladene `icon_rsync.png` im Repo-Root wieder entfernt (`git rm`),
+  da sie nur als Übergabe-Mechanismus diente und inhaltlich identisch mit
+  `AppIconSource/AppIcon-1024.png` ist — die kanonische Kopie liegt jetzt
+  ausschließlich in `AppIconSource/`.
+- `build.command` unverändert (baut wie gehabt aus `AppIconSource/AppIcon.iconset`).
+
+Für künftige Icon-Updates gilt: Ein im Chat nur eingefügtes/eingebettetes
+Bild kann ich nicht direkt verarbeiten (kein Dateizugriff) — entweder als
+Datei-Anhang hochladen (wie bei der `.icns`-Datei) oder wie hier direkt ins
+GitHub-Repo hochladen und mir Bescheid geben, dann hole ich es per Git.
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
+`build.command` laufen lassen und prüfen, ob das Icon (inkl. der neuen
+hellen Hintergrundfläche) korrekt erscheint.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
