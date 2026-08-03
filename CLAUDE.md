@@ -113,12 +113,18 @@ rsync-Flags.)
   - `RsyncBackupDesktopApp`: Einstiegspunkt, `WindowGroup` (ohne Titel-String)
     mit `ContentView` als Inhalt, `.windowResizability(.contentSize)`,
     `.windowStyle(.hiddenTitleBar)`.
-- `AppIconSource/` — **festes, vom Nutzer geliefertes App-Icon** (2026-07-20,
-  „Variante 3f: Graphit-Hintergrund + grüner Ordner"), fest im Repo versioniert:
+- `AppIconSource/` — **festes, vom Nutzer geliefertes App-Icon** (zuletzt
+  aktualisiert 2026-08-03: dunkler Ordner mit heller Karte und goldenen
+  Sync-Pfeilen, transparenter Hintergrund statt Squircle-Fläche), fest im
+  Repo versioniert:
   - `AppIcon-1024.png` — Master-Icon (1024×1024 px), nur als Referenz/für
     einen späteren Re-Export.
   - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
-    `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit.
+    `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit. Die
+    Größen 128–1024 stammen verlustfrei aus der vom Nutzer gelieferten
+    `.icns`-Datei (dort eingebettete PNGs extrahiert); die kleineren Größen
+    16/32/64 gab es darin nicht und wurden aus dem 1024px-Master
+    hochwertig herunterskaliert (Lanczos).
   - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
     grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
     **jedem** Build unverändert übernommen, nicht mehr neu generiert.

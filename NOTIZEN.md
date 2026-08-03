@@ -544,6 +544,33 @@ lässt sich scrollen, Text ist vollständig lesbar, keine abgeschnittenen
 Buttons, und die Anleitung funktioniert tatsächlich Schritt für Schritt wie
 beschrieben.
 
+### Update 2026-08-03: Neues App-Icon (vom Nutzer als .icns geliefert)
+
+Nutzer hat diesmal direkt eine fertige `.icns`-Datei angehängt (dunkler
+Ordner mit heller, leicht gedrehter Karte und goldenen Sync-Pfeilen,
+transparenter Hintergrund statt der bisherigen Squircle-Fläche) und wollte
+sie als neues, dauerhaftes Build-Icon.
+
+- Die `.icns`-Datei enthielt eingebettete PNGs nur für die Größen 128, 256,
+  512 und 1024 px (keine 16/32/64). Diese vier PNGs wurden verlustfrei per
+  Byte-Scan extrahiert (PNG-Signatur + PNG-eigene Chunk-Länge, unabhängig
+  von der ICNS-internen Container-Struktur) und direkt übernommen.
+- Die fehlenden kleinen Größen (16, 32, 64 px) wurden aus dem 1024px-Master
+  per Lanczos-Resampling erzeugt (Pillow), da die Original-.icns sie nicht
+  enthielt.
+- Alle zehn resultierenden PNGs ersetzen die bisherigen Dateien in
+  `AppIconSource/AppIcon.iconset/`, `AppIconSource/AppIcon-1024.png` wurde
+  durch den neuen 1024px-Master ersetzt.
+- **`build.command` musste nicht geändert werden** — es kopiert bereits seit
+  der letzten Icon-Umstellung `AppIconSource/AppIcon.iconset` und baut daraus
+  bei jedem Build per `iconutil` ein frisches `AppIcon.icns`. Das neue Icon
+  greift also automatisch beim nächsten Build.
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
+`build.command` laufen lassen und prüfen, ob das neue Icon korrekt und
+scharf im Dock/Finder erscheint, insbesondere die kleinen, hochskalierten
+Größen (16/32 px).
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
