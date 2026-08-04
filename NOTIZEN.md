@@ -634,6 +634,26 @@ PNG.
 Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac
 `build.command` laufen lassen und prüfen, ob das Icon korrekt erscheint.
 
+### Update 2026-08-03 (weitere Nachbesserung): Icon-Composer-Bundle mit zweiter Ebene aktualisiert
+
+Nutzer hat das Icon-Composer-Bundle erneut hochgeladen, diesmal mit einer
+zweiten Bild-Ebene (`Assets/rsync 2.png`, in `icon.json` als zusätzlicher
+Layer „rsync 2" referenziert). Geprüft: `Assets/rsync.png` — die Ebene, die
+bereits als Build-Master verwendet wird — ist **pixelidentisch** zur
+vorherigen Version (Bytevergleich: 0 Unterschied). Der bestehende
+`AppIconSource/AppIcon-1024.png`/`AppIcon.iconset/`-Build-Output ist damit
+weiterhin exakt aktuell, es waren **keine Änderungen an den tatsächlich
+gebauten Icon-Dateien nötig**.
+
+- Nur die Referenzkopie `AppIconSource/rsync.icon/` aktualisiert: neues
+  `icon.json` (jetzt zwei Layer) übernommen, `Assets/rsync 2.png` ergänzt.
+  `Assets/rsync.png` unverändert gelassen (ist bereits identisch).
+- `build.command` unverändert, kein neuer Build-Master nötig.
+
+Ungetestet im Sinne von „nichts Neues zu testen" — der Build-Output ist
+identisch zum vorherigen Stand, da sich die für den Build relevante
+Bilddatei nicht geändert hat.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

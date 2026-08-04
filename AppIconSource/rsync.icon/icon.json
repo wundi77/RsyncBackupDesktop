@@ -7,6 +7,11 @@
       "layers" : [
         {
           "glass" : false,
+          "image-name" : "rsync 2.png",
+          "name" : "rsync 2"
+        },
+        {
+          "glass" : false,
           "image-name" : "rsync.png",
           "name" : "rsync"
         }

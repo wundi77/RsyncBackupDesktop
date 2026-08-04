@@ -125,8 +125,10 @@ rsync-Flags.)
   - `rsync.icon/` — das vom Nutzer als **Icon-Composer-Bundle** (`.icon`,
     Apples neues „Liquid Glass"-Iconformat ab Xcode 26) gelieferte
     Original: `icon.json` (Ebenen/Verlauf/Glas-/Schatten-Konfiguration) +
-    `Assets/rsync.png` (die flache Rasterebene). Nur zur Referenz für eine
-    mögliche spätere Xcode-Migration aufgehoben — **wird beim Build nicht
+    `Assets/rsync.png` (die flache Rasterebene) + `Assets/rsync 2.png`
+    (zweite Ebene, seit 2026-08-03; die für den Build verwendete
+    `rsync.png` ist unverändert). Nur zur Referenz für eine mögliche
+    spätere Xcode-Migration aufgehoben — **wird beim Build nicht
     verwendet**, da dieses Projekt kein Xcode-Projekt ist und `iconutil`
     dieses Bundle-Format nicht versteht. Stattdessen liefert
     `Assets/rsync.png` den flachen 1024px-Master für `AppIcon-1024.png`/
