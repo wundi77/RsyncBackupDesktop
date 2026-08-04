@@ -115,25 +115,26 @@ rsync-Flags.)
     `.windowStyle(.hiddenTitleBar)`.
 - `AppIconSource/` — **festes, vom Nutzer geliefertes App-Icon** (zuletzt
   aktualisiert 2026-08-03: dunkler Ordner mit heller Karte und goldenen
-  Sync-Pfeilen, mit heller Squircle-Hintergrundfläche), fest im Repo
-  versioniert:
+  Sync-Pfeilen in Nahaufnahme, randlos/randabschneidend über die volle
+  1024×1024-Fläche, keine abgerundete Squircle-Form/kein Rand — bewusst so
+  vom Nutzer gewählt), fest im Repo versioniert:
   - `AppIcon-1024.png` — Master-Icon (1024×1024 px), nur als Referenz/für
     einen späteren Re-Export.
   - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
     `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit, per
-    Lanczos-Resampling aus dem 1024px-PNG-Master erzeugt.
+    Lanczos-Resampling aus dem 1024px-PNG-Master erzeugt (1:1, ohne
+    zusätzliches Padding/Rounding).
   - `rsync.icon/` — das vom Nutzer als **Icon-Composer-Bundle** (`.icon`,
     Apples neues „Liquid Glass"-Iconformat ab Xcode 26) gelieferte
-    Original: `icon.json` (Ebenen/Verlauf/Glas-/Schatten-Konfiguration) +
-    `Assets/rsync.png` (die flache Rasterebene) + `Assets/rsync 2.png`
-    (zweite Ebene, seit 2026-08-03; die für den Build verwendete
-    `rsync.png` ist unverändert). Nur zur Referenz für eine mögliche
-    spätere Xcode-Migration aufgehoben — **wird beim Build nicht
-    verwendet**, da dieses Projekt kein Xcode-Projekt ist und `iconutil`
-    dieses Bundle-Format nicht versteht. Stattdessen liefert
-    `Assets/rsync.png` den flachen 1024px-Master für `AppIcon-1024.png`/
-    `AppIcon.iconset/` (die dort beschriebenen Glass-/Verlaufs-Effekte
-    gehen dabei verloren, das Bildmotiv bleibt identisch).
+    Original: `icon.json` (aktuell ein einzelner Layer „rsync 2") +
+    `Assets/rsync 2.png` (die für den Build verwendete Rasterebene). Nur
+    zur Referenz für eine mögliche spätere Xcode-Migration aufgehoben —
+    **wird beim Build nicht verwendet**, da dieses Projekt kein
+    Xcode-Projekt ist und `iconutil` dieses Bundle-Format nicht versteht.
+    Stattdessen liefert `Assets/rsync 2.png` unverändert den 1024px-Master
+    für `AppIcon-1024.png`/`AppIcon.iconset/` (die in `icon.json`
+    beschriebenen Glass-/Verlaufs-/Schatten-Effekte gehen dabei verloren,
+    das Bildmotiv bleibt identisch).
   - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
     grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
     **jedem** Build unverändert übernommen, nicht mehr neu generiert.

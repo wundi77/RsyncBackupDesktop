@@ -654,6 +654,33 @@ Ungetestet im Sinne von „nichts Neues zu testen" — der Build-Output ist
 identisch zum vorherigen Stand, da sich die für den Build relevante
 Bilddatei nicht geändert hat.
 
+### Update 2026-08-03 (vierte Icon-Nachbesserung): randloses "rsync 2"-Layer als neuer Master
+
+Nutzer hat das Icon-Composer-Bundle nochmal hochgeladen, diesmal mit nur
+noch **einem** Layer (`rsync 2.png`) — die vorherige `rsync.png`-Ebene
+(mit heller Squircle-Fläche/Rand) ist aus `icon.json` entfernt.
+
+- Das neue `rsync 2.png` füllt die volle 1024×1024-Fläche randlos aus
+  (scharfe rechteckige Ecken, kein Rand/Abstand, keine abgerundete
+  App-Icon-Form) — deutlich anders als der bisherige gerundete Look.
+  Da diese Formfrage das sichtbare Ergebnis stark beeinflusst und nicht
+  automatisch rückgängig zu machen ist, wurde per Rückfrage geklärt, ob
+  automatisch eine passende Squircle-Form mit Rand ergänzt werden soll
+  oder das Bild randlos 1:1 übernommen werden soll — Nutzer wollte
+  **randlos 1:1**.
+- `AppIconSource/AppIcon-1024.png` durch `rsync 2.png` ersetzt (unverändert,
+  keine Skalierung/kein Padding/keine Maskierung), komplettes Iconset
+  daraus neu erzeugt.
+- `AppIconSource/rsync.icon/` auf den aktuellen Bundle-Stand gebracht:
+  `icon.json` ersetzt (jetzt nur noch der eine Layer), die nicht mehr
+  referenzierte `Assets/rsync.png` entfernt, `Assets/rsync 2.png`
+  aktualisiert.
+- `build.command` unverändert.
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
+ob das randlose Icon im Dock/Finder wie gewünscht aussieht (bewusst ohne
+abgerundete Ecken/Rand, anders als bei anderen macOS-Apps).
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
