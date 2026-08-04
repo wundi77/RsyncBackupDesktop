@@ -681,6 +681,30 @@ Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
 ob das randlose Icon im Dock/Finder wie gewünscht aussieht (bewusst ohne
 abgerundete Ecken/Rand, anders als bei anderen macOS-Apps).
 
+### Update 2026-08-03 (fünfte Icon-Nachbesserung): doch die skalierte/abgerundete Variante mit Transparenz
+
+Nach kurzem Test der randlosen 1:1-Variante hat sich der Nutzer umentschieden
+und die zuvor als Alternative vorgeschlagene Variante gewünscht: skaliert,
+mit abgerundeten Ecken und transparentem Rand statt randlos über die volle
+Fläche.
+
+- `AppIconSource/AppIcon-1024.png` wird jetzt aus dem randlosen Rohmotiv
+  (`rsync.icon/Assets/rsync 2.png`) per Skript erzeugt: auf ca. 824×824 px
+  (≈ 80,5 % von 1024, angelehnt an Apples übliches macOS-Icon-Inhaltsraster)
+  herunterskaliert, mit einer abgerundeten Maske (Radius ≈ 22,5 % der
+  Inhaltsgröße, ≈ 185 px) auf Squircle-Form beschnitten und zentriert auf
+  einer 1024×1024 transparenten Fläche platziert (kein Farbverlauf/Fill im
+  Rand, echte Transparenz).
+- Komplettes Iconset (`AppIconSource/AppIcon.iconset/`) daraus neu erzeugt.
+- `AppIconSource/rsync.icon/` (Referenz-Bundle) unverändert, da das Rohmotiv
+  selbst nicht geändert wurde, nur die Weiterverarbeitung für den
+  Build-Master.
+- `build.command` unverändert.
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
+ob Skalierung/Rundung/Transparenz im Dock/Finder gut aussehen, ggf. Radius
+oder Skalierungsfaktor nachjustieren.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf
