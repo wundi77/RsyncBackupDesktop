@@ -705,6 +705,27 @@ Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
 ob Skalierung/Rundung/Transparenz im Dock/Finder gut aussehen, ggf. Radius
 oder Skalierungsfaktor nachjustieren.
 
+### Update 2026-08-03 (sechste Icon-Nachbesserung): fertiger "macOS Default"-Export aus Icon Composer
+
+Nutzer hat diesmal den direkten Export aus Icon Composer geliefert
+(`rsync-macOS-Default-1024x1024@1x.png`) statt eines Rohmotiv-Layers — das
+ist bereits das fertig gerenderte Ergebnis mit Squircle-Maske, Schatten und
+transparenten Ecken (RGBA, Eckpixel `(0,0,0,0)` geprüft). Damit erübrigt
+sich die zuvor selbst gebaute Skalierungs-/Rundungs-/Transparenz-Logik aus
+der letzten Nachbesserung — dieser Export ist schon korrekt.
+
+- `AppIconSource/AppIcon-1024.png` direkt durch diese Datei ersetzt (1:1,
+  keine weitere Bearbeitung), komplettes Iconset neu erzeugt.
+- `AppIconSource/rsync.icon/` (Referenz-Bundle) unverändert gelassen — das
+  darin enthaltene `Assets/rsync 2.png` ist weiterhin das unbearbeitete
+  Rohmotiv und jetzt nicht mehr identisch mit `AppIcon-1024.png`, da
+  letzteres nun der fertige Export ist (in CLAUDE.md vermerkt, damit das in
+  Zukunft nicht verwirrt).
+- `build.command` unverändert.
+
+Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
+ob das Icon jetzt korrekt und scharf im Dock/Finder erscheint.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

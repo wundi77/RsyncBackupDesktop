@@ -120,23 +120,22 @@ rsync-Flags.)
     einen späteren Re-Export.
   - `AppIcon.iconset/` — alle Standardgrößen (16–1024 px, inkl. `@2x`) im von
     `iconutil` erwarteten Format/Namensschema, direkt einsatzbereit, per
-    Lanczos-Resampling aus dem 1024px-PNG-Master erzeugt. Das Rohmotiv
-    (`rsync.icon/Assets/rsync 2.png`, randlos über die volle Fläche) wird
-    dafür auf ca. 80,5 % skaliert, per abgerundeter Maske (Squircle-Radius
-    ≈ 22,5 % der Inhaltsgröße) beschnitten und zentriert auf transparentem
-    Hintergrund platziert — passend zum sonst üblichen macOS-Icon-Look mit
-    Rand statt randlos über die volle Fläche.
+    Lanczos-Resampling aus dem 1024px-PNG-Master erzeugt. Der Master ist
+    diesmal der direkte **„macOS Default"-Export aus Icon Composer**
+    (`rsync-macOS-Default-1024x1024@1x.png`) — bereits fertig gerendert
+    mit Squircle-Maske, Schatten und transparenten Ecken, keine manuelle
+    Nachbearbeitung (Skalierung/Rundung) mehr nötig wie bei den
+    vorherigen Rohmotiv-Versionen.
   - `rsync.icon/` — das vom Nutzer als **Icon-Composer-Bundle** (`.icon`,
     Apples neues „Liquid Glass"-Iconformat ab Xcode 26) gelieferte
     Original: `icon.json` (aktuell ein einzelner Layer „rsync 2") +
-    `Assets/rsync 2.png` (die als Rohmotiv verwendete Rasterebene,
-    randlos/ohne Rundung). Nur zur Referenz für eine mögliche spätere
-    Xcode-Migration aufgehoben — **wird beim Build nicht verwendet**, da
-    dieses Projekt kein Xcode-Projekt ist und `iconutil` dieses
-    Bundle-Format nicht versteht. Die in `icon.json` beschriebenen
-    Glass-/Verlaufs-/Schatten-Effekte werden nicht nachgebildet; stattdessen
-    sorgt die oben beschriebene Skalierung/Rundung/Transparenz in
-    `AppIcon-1024.png` für einen vergleichbaren, klassischen macOS-Look.
+    `Assets/rsync 2.png` (das unbearbeitete Rohmotiv, randlos/ohne
+    Rundung — nicht mehr identisch mit dem aktuellen `AppIcon-1024.png`,
+    da dieses jetzt aus dem fertigen Export statt dem Rohmotiv stammt).
+    Nur zur Referenz für eine mögliche spätere Xcode-Migration
+    aufgehoben — **wird beim Build nicht verwendet**, da dieses Projekt
+    kein Xcode-Projekt ist und `iconutil` dieses Bundle-Format nicht
+    versteht.
   - Ersetzt das frühere `make_icon.swift` (programmatisch gezeichnetes Icon,
     grüner Verlauf + SF Symbol) vollständig — dieses Icon wird jetzt bei
     **jedem** Build unverändert übernommen, nicht mehr neu generiert.
