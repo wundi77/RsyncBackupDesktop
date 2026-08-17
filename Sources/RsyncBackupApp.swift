@@ -265,6 +265,20 @@ final class BackupManager: ObservableObject {
         // aktuellen Einzeldatei statt Gesamtfortschritt).
         var args = ["-ah", "--partial"]
         args.append(Self.unterstuetztProgress2 ? "--info=progress2" : "-P")
+        if Self.unterstuetztProgress2 {
+            // Ohne dieses Flag baut rsync (ab Version 3) die Dateiliste
+            // "inkrementell" auf, d. h. es entdeckt Unterordner erst während
+            // der laufenden Übertragung. Dadurch kann die für den
+            // Fortschrittsbalken gemeldete Gesamtgröße mittendrin ansteigen,
+            // was den Balken kurzzeitig zurückspringen lässt. Mit
+            // --no-inc-recursive baut rsync die komplette Dateiliste vorher
+            // auf, wodurch der Balken sauber und monoton von 0 auf 100 %
+            // läuft (Kompromiss: der erste Fortschritt erscheint bei sehr
+            // großen Verzeichnisbäumen etwas später). Nicht verfügbar auf
+            // altem rsync (< 3.x, kein --info=progress2), daher an dieselbe
+            // Versionsprüfung gekoppelt.
+            args.append("--no-inc-recursive")
+        }
         args += ["--delete", "--ignore-errors", "--stats"]
         if dryRun { args.append("-n") } // Testlauf: nichts wird verändert.
         args += [src, destination]

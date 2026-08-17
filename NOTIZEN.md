@@ -726,6 +726,42 @@ der letzten Nachbesserung — dieser Export ist schon korrekt.
 Ungetestet (kein `iconutil`/macOS in dieser Sitzung) — auf dem Mac prüfen,
 ob das Icon jetzt korrekt und scharf im Dock/Finder erscheint.
 
+### Update 2026-08-06 (Branch `ProgressBar`): Fortschrittsbalken sprang zurück — `--no-inc-recursive` ergänzt
+
+Nutzer-Feedback: Fortschrittsbalken lief nicht sauber monoton von 0 auf
+100 %, sondern sprang zwischendurch in der Länge zurück, Prozentzahl sank
+kurzzeitig und stieg wieder — trotz aktuellem rsync 3.x auf dem System.
+
+**Analyse (zuerst nur Feedback, keine Änderung):** Kein Bug im
+Parsing-Code (`BackupManager.parseProgress(from:)` liest die Prozentzahl
+1:1 aus rsyncs eigener `--info=progress2`-Ausgabe, ohne sie zu verändern).
+Ursache ist rsyncs Standardverhalten seit Version 3.0: „inkrementelle
+Rekursion" — rsync beginnt zu übertragen, während es im Hintergrund noch
+weitere Unterordner entdeckt. Wird währenddessen ein bisher unbekannter
+Unterordner mit weiteren Dateien gefunden, steigt die für den
+Fortschrittsbalken zugrunde liegende Gesamtgröße (Nenner) plötzlich an —
+die Prozentzahl fällt dadurch kurz ab, bevor sie weiter steigt.
+
+**Umsetzung (auf Wunsch, im Branch `ProgressBar` statt direkt auf
+`main`):** rsync-Aufruf um `--no-inc-recursive` ergänzt, aber nur wenn
+`unterstuetztProgress2` (rsync ≥ 3.x) — die Option existiert auf altem
+rsync nicht und wäre dort ohnehin bedeutungslos (kein Progress2/keine
+inkrementelle Rekursion). Erzwingt, dass rsync die komplette Dateiliste
+**vor** Beginn der Übertragung aufbaut, sodass die Gesamtgröße von Anfang
+an feststeht und der Balken monoton läuft. Kompromiss: bei sehr großen
+Verzeichnisbäumen erscheint der erste sichtbare Fortschritt etwas später
+(komplette Vorab-Durchsuchung nötig), etwas mehr Speicherbedarf bei
+riesigen Baumstrukturen.
+
+Zweite, ergänzende Idee aus dem Feedback (monotones Klemmen des Balkens in
+der App selbst, falls doch mal ein niedrigerer Wert gemeldet wird) wurde
+**nicht** umgesetzt — erstmal nur die rsync-seitige Lösung, da sie die
+Ursache behebt statt nur das Symptom zu kaschieren.
+
+Ungetestet (kein `swiftc`/rsync in dieser Sitzung) — auf dem Mac prüfen, ob
+der Balken jetzt sauber monoton läuft, und ob der leicht verzögerte Start
+bei großen Verzeichnissen akzeptabel ist.
+
 ## Bekannte Einschränkungen
 
 - `rsync --delete` ist auf dem **Ziel destruktiv** – vor dem ersten echten Lauf

@@ -39,7 +39,7 @@ Funktions-Updates ggf. in beiden Repos parallel nachziehen.
 Der ausgeführte Befehl ist im Kern fest verdrahtet:
 
 ```
-rsync -ah --partial --info=progress2 --delete --ignore-errors --stats <Quelle>/ <Ziel>
+rsync -ah --partial --info=progress2 --no-inc-recursive --delete --ignore-errors --stats <Quelle>/ <Ziel>
 ```
 
 `--stats` liefert am Laufende einen auswertbaren Zusammenfassungsblock
@@ -48,6 +48,16 @@ geparst wird (siehe `buildSummaries` in `BackupManager`). `--info=progress2`
 liefert eine Prozentangabe für den **Gesamtfortschritt über alle Dateien**
 (statt nur der aktuellen Einzeldatei wie bei `-P`/`--progress`), aus der
 `BackupManager.parseProgress(from:)` den Fortschrittsbalken speist.
+`--no-inc-recursive` (nur ≥ rsync 3.x, an dieselbe Versionsprüfung wie
+`--info=progress2` gekoppelt) erzwingt, dass rsync die komplette Dateiliste
+**vor** Beginn der Übertragung aufbaut, statt Unterordner erst währenddessen
+zu entdecken (Standardverhalten „inkrementelle Rekursion" seit rsync 3.0).
+Ohne dieses Flag kann die von `--info=progress2` gemeldete Gesamtgröße
+mittendrin ansteigen, sobald rsync neue Unterordner findet — das lässt den
+Fortschrittsbalken kurzzeitig zurückspringen und die Prozentzahl wieder
+sinken. Mit `--no-inc-recursive` läuft der Balken sauber monoton von 0 auf
+100 % (Kompromiss: bei sehr großen Verzeichnisbäumen erscheint der erste
+sichtbare Fortschritt etwas später, da erst komplett durchsucht wird).
 
 **Kompatibilitäts-Fallback:** `--info=progress2` gibt es erst ab rsync 3.x.
 Apples mitgeliefertes `/usr/bin/rsync` ist auf vielen Macs noch die uralte
